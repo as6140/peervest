@@ -1,3 +1,8 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OneHotEncoder
+import math
+
 columns_list = ['loan_amnt', 'funded_amnt','total_pymnt',
                 'term', 'int_rate', 'installment',
                 'emp_length', 'home_ownership', 'annual_inc',
@@ -176,6 +181,7 @@ def clean_LC_data_classification_eval(dfs_list):
     '''Prepare completed loan term LendingClub data for classification to compare to labels.
     Returns clean DataFrame ready for model-based EVALUATION'''
     raw_lc_df = pd.concat(dfs_list, ignore_index=True)
+    # Uses completed loans
     raw_lc_df = raw_lc_df.loc[(raw_lc_df['loan_status'] == 'Charged Off') |
                               (raw_lc_df['loan_status'] == 'Fully Paid') |
                               (raw_lc_df['loan_status'] == 'Default'),:]
@@ -183,7 +189,7 @@ def clean_LC_data_classification_eval(dfs_list):
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
-    lc_df = raw_lc_df[[columns_list]]
+    lc_df = raw_lc_df[columns_list]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths']).reset_index(drop=True)
     lc_df = lc_df.astype(dtype=dtype)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
@@ -205,6 +211,7 @@ def clean_new_LC_data_classification_current(dfs_list):
     '''Prepare new, current, investable LendingClub data for classification to make recommendations. 
     Returns clean DataFrame ready for model-based PREDICTION'''
     raw_lc_df = pd.concat(dfs_list, ignore_index=True)
+    # Uses current loans
     raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
     raw_lc_df.drop(columns=['loan_status'], inplace=True)
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
@@ -242,14 +249,42 @@ def preprocessing_eval(clean_lc_df):
     X_train, X_test = impute_means_zeros_maxs_X_train_X_test(X_train, X_test, nan_max_cols, nan_zero_cols, nan_mean_cols)
     return X_train, X_test, y_train, y_test
 
+def preprocessing_future_test(clean_lc_df_future):
+    '''Initiate X & Y and impute missing values'''
+    X_future = clean_lc_df_future.drop(columns=['loan_status'])
+    y_future = clean_lc_df_future[['loan_status']]
+    y_future['loan_status'] = y_future['loan_status'].astype(int)
+    #pd.DataFrame(clean_lc_df_future['loan_status'], index=clean_lc_df_future.index, columns=['class_pred'])
+    X_future.drop(columns=['title'],inplace=True) 
+    # CALL IMPUTE FUNCTION on X_current
+    X_future = impute_means_zeros_maxs_X(X_future, nan_max_cols, nan_zero_cols, nan_mean_cols)
+    return X_future, y_future
+
 def preprocessing_current(clean_lc_df_current):
     '''Initiate X & Y and impute missing values'''
-    X_current = clean_lc_df_current
+    X_current = clean_lc_df_current.drop(columns=['loan_status'])
     y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['class_pred'])
     X_current.drop(columns=['title'],inplace=True) 
     # CALL IMPUTE FUNCTION on X_current
     X_current = impute_means_zeros_maxs_X(X_current, nan_max_cols, nan_zero_cols, nan_mean_cols)
     return X_current, y_current
+
+###### One Hot Encoding
+
+#Load X_train for use in One Hot Encoding
+X_train_pre_ohe_for_future_encoder = pd.read_pickle('X_train_pre_ohe_for_future_encoder.pkl')
+
+def prep_all_df_for_classification(X_all_df):
+    '''drop OHE source columns & unuseful categorical variables'''
+    X_all_df.drop(columns=['term','verification_status',
+                           'grade','emp_title', 'addr_state',
+                           #ALSO, drop redundant columns that new OHE columns provide the info for
+                           'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                           'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+    
+#call function pre-OHE
+prep_all_df_for_classification(X_train_pre_ohe_for_future_encoder)
+
 
 def one_hot_encode_eval(X_train, X_test):
     '''One Hot Encoder for 6x categorical vars on X_train, transforming X_train & X_test'''
@@ -288,23 +323,29 @@ def one_hot_encode_eval(X_train, X_test):
     ohe_sub_grade_test, ohe_emp_title_2_test
     
 def one_hot_encode_current(X_current):
-    '''One Hot Encoder for 6x categorical vars on X_current, transforming X_current'''
-    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_current[['home_ownership']])
+    '''One Hot Encoder for 6x categorical vars on X_train, transforming X_current'''
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['home_ownership']])
     ohe_home_ownership = pd.DataFrame(encoder.transform(X_current[['home_ownership']]).toarray(),
                                       columns=encoder.get_feature_names(["home_ownership"]))
-    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_current[['purpose']])
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['purpose']])
     ohe_purpose = pd.DataFrame(encoder.transform(X_current[['purpose']]).toarray(),
                                columns=encoder.get_feature_names(["purpose"]))
-    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_current[['zip_code']])
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['zip_code']])
     ohe_zip_code = pd.DataFrame(encoder.transform(X_current[['zip_code']]).toarray(),
                                 columns=encoder.get_feature_names(["zip_code"]))
-    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_current[['application_type']])
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['application_type']])
     ohe_application_type = pd.DataFrame(encoder.transform(X_current[['application_type']]).toarray(),
                                         columns=encoder.get_feature_names(["application_type"]))
-    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_current[['sub_grade']])
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['sub_grade']])
     ohe_sub_grade = pd.DataFrame(encoder.transform(X_current[['sub_grade']]).toarray(),
                                  columns=encoder.get_feature_names(["sub_grade"]))
-    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_current[['emp_title_2']])
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['emp_title_2']])
     ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_current[['emp_title_2']]).toarray(),
                                    columns=encoder.get_feature_names(["emp_title_2"]))
     return ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2

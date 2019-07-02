@@ -209,15 +209,15 @@ def clean_LC_data_classification_eval(dfs_list):
 
 def clean_new_LC_data_classification_current(dfs_list):
     '''Prepare new, current, investable LendingClub data for classification to make recommendations. 
-    Returns clean DataFrame ready for model-based PREDICTION'''
+    Returns clean DataFrame ready for model-based RECOMMENDATION'''
     raw_lc_df = pd.concat(dfs_list, ignore_index=True)
     # Uses current loans
     raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
-    raw_lc_df.drop(columns=['loan_status'], inplace=True)
+    #raw_lc_df.drop(columns=['loan_status'], inplace=True)
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
-    lc_df = raw_lc_df[[columns_list]]
+    lc_df = raw_lc_df[columns_list]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths']).reset_index(drop=True)
     lc_df = lc_df.astype(dtype=dtype)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
@@ -418,3 +418,25 @@ def scale_eval(X_train_all,X_test_all):
     X_train_all_scaled = scaler.transform(X_train_all)
     X_test_all_scaled = scaler.transform(X_test_all)
     return X_train_all_scaled, X_test_all_scaled
+
+##### RUNNING PREDICTIONS ON CURRENT DATA
+
+def current_pipeline(dfs_list):
+    #CLASSIFICATION PIPELINE
+    clean_lc_df_current = clean_new_LC_data_classification_current(dfs_list)
+    X_current, y_current = preprocessing_current(clean_lc_df_current)
+    (ohe_home_ownership, ohe_purpose, ohe_zip_code, 
+     ohe_application_type, ohe_sub_grade, ohe_emp_title_2) = one_hot_encode_current(X_current)
+    X_current_classif = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code,
+                                          ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
+    X_current_classif.set_index('index',inplace=True)
+    prep_all_df_for_classification(X_current_classif)
+    loaded_log_reg_v1 = joblib.load('log_reg_v1.joblib')
+    current_class_preds_proba = loaded_log_reg_v1.predict_proba(X_current_classif)
+    y_current['class_pred'] = current_class_preds_proba[:,0]
+    #REGRESSION PIPELINE
+    X_current_regr.set_index('index',inplace=True)
+    y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
+    
+    
+    

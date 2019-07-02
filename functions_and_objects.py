@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import math
 
 columns_list = ['loan_amnt', 'funded_amnt','total_pymnt',
@@ -250,7 +250,7 @@ def preprocessing_eval(clean_lc_df):
     return X_train, X_test, y_train, y_test
 
 def preprocessing_future_test(clean_lc_df_future):
-    '''Initiate X & Y and impute missing values'''
+    '''Initiate X & Y and impute missing values for Completed loans'''
     X_future = clean_lc_df_future.drop(columns=['loan_status'])
     y_future = clean_lc_df_future[['loan_status']]
     y_future['loan_status'] = y_future['loan_status'].astype(int)
@@ -261,7 +261,7 @@ def preprocessing_future_test(clean_lc_df_future):
     return X_future, y_future
 
 def preprocessing_current(clean_lc_df_current):
-    '''Initiate X & Y and impute missing values'''
+    '''Initiate X & Y and impute missing values for Current loans'''
     X_current = clean_lc_df_current.drop(columns=['loan_status'])
     y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['class_pred'])
     X_current.drop(columns=['title'],inplace=True) 
@@ -273,18 +273,6 @@ def preprocessing_current(clean_lc_df_current):
 
 #Load X_train for use in One Hot Encoding
 X_train_pre_ohe_for_future_encoder = pd.read_pickle('X_train_pre_ohe_for_future_encoder.pkl')
-
-def prep_all_df_for_classification(X_all_df):
-    '''drop OHE source columns & unuseful categorical variables'''
-    X_all_df.drop(columns=['term','verification_status',
-                           'grade','emp_title', 'addr_state',
-                           #ALSO, drop redundant columns that new OHE columns provide the info for
-                           'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
-                           'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
-    
-#call function pre-OHE
-prep_all_df_for_classification(X_train_pre_ohe_for_future_encoder)
-
 
 def one_hot_encode_eval(X_train, X_test):
     '''One Hot Encoder for 6x categorical vars on X_train, transforming X_train & X_test'''
@@ -366,3 +354,67 @@ def concat_X_and_6ohe_dfs(X, ohe_home_ownership, ohe_purpose, ohe_zip_code,
 
     X_comb = pd.concat([X_comb.drop("emp_title_2", axis=1), ohe_emp_title_2], axis=1)
     return X_comb
+
+##### Classification Prep
+def prep_all_df_for_classification(X_all_df):
+    '''drop OHE source columns & unuseful categorical variables'''
+    X_all_df.drop(columns=['term','verification_status',
+                           'grade','emp_title', 'addr_state',
+                           #ALSO, drop redundant columns that new OHE columns provide the info for
+                           'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                           'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+#call function pre-OHE
+prep_all_df_for_classification(X_train_pre_ohe_for_future_encoder)
+
+
+##### Regression Prep
+def calc_annu_return(input_df):
+    '''Calculates annual return given cleaned LendingClub dataframe'''
+    annu_return = (input_df['total_pymnt'] /
+                   input_df['funded_amnt']) ** (365.0 /
+                                                ((pd.to_datetime(input_df['last_pymnt_d']) - 
+                                                  pd.to_datetime(input_df['issue_d'])).dt.days + 30)) - 1
+    return annu_return
+
+def impute_annu_return_to_y(input_df, target_df):
+    '''Use input dataframe to compute annualized return and add to target dataframe'''
+    target_df['annu_return'] = calc_annu_return(input_df)
+    target_df_return = target_df[['annu_return']]
+    return target_df_return, target_df
+
+def prep_df_for_regression_current(X_all_df):
+    '''drop OHE source columns & unuseful categorical variables'''
+    X_all_df.drop(columns=['term','verification_status',
+                           'grade','emp_title', 'addr_state',
+                           #ALSO, drop redundant columns that new OHE columns provide the info for
+                           'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                           'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+
+def prep_df_for_regression_eval(X_train_all,X_test_all):
+    '''drop OHE source columns & unuseful categorical variables'''
+    X_train_all.drop(columns=['term','verification_status',
+                          'grade','emp_title', 'addr_state',
+                          #ALSO, drop redundant columns that new OHE columns provide the info for
+                          'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                          'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+    X_test_all.drop(columns=['term','verification_status',
+                          'grade','emp_title', 'addr_state',
+                          #ALSO, drop redundant columns that new OHE columns provide the info for
+                          'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                          'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+    
+def scale_current(X_all_df):
+    '''Scale current data to prep for regression prediction'''
+    scaler = StandardScaler()
+    scaler.fit(X_all_df.values)
+    X_all_df_scaled = scaler.transform(X_all_df.values)
+    X_all_df_scaled = pd.DataFrame(X_all_df_scaled, index=X_all_df.index, columns=X_all_df.columns)
+    return X_all_df_scaled
+
+def scale_eval(X_train_all,X_test_all):
+    '''Scale train & test data to prep for regression prediction/evaluation'''
+    scaler = StandardScaler()
+    scaler.fit(X_train_all)
+    X_train_all_scaled = scaler.transform(X_train_all)
+    X_test_all_scaled = scaler.transform(X_test_all)
+    return X_train_all_scaled, X_test_all_scaled

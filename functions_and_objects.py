@@ -429,14 +429,20 @@ def current_pipeline(dfs_list):
      ohe_application_type, ohe_sub_grade, ohe_emp_title_2) = one_hot_encode_current(X_current)
     X_current_classif = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code,
                                           ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
+    X_current_regr = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
+                                       ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     X_current_classif.set_index('index',inplace=True)
     prep_all_df_for_classification(X_current_classif)
     loaded_log_reg_v1 = joblib.load('log_reg_v1.joblib')
     current_class_preds_proba = loaded_log_reg_v1.predict_proba(X_current_classif)
-    y_current['class_pred'] = current_class_preds_proba[:,0]
+    y_current['prob_default'] = current_class_preds_proba[:,0]
     #REGRESSION PIPELINE
     X_current_regr.set_index('index',inplace=True)
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
+    prep_df_for_regression_current(X_current_regr)
+    X_current_regr_scaled = scale_current(X_current_regr)
+    loaded_ridge_reg_v1 = joblib.load('ridge_lin_reg_v1.joblib')
+    current_return_preds = loaded_ridge_reg_v1.predict(X_current_regr_scaled)
     
     
     

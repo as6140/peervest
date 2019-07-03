@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.model_selection import train_test_split
 import math
 
 columns_list = ['loan_amnt', 'funded_amnt','total_pymnt',
@@ -196,7 +197,7 @@ def clean_LC_data_classification_eval(dfs_list):
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
     lc_df = raw_lc_df[columns_list]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
-    lc_df.set_index('id',inplace=True)
+    #lc_df.set_index('id',inplace=True)
     lc_df = lc_df.astype(dtype=dtype)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
     lc_df.loc[lc_df['emp_length'] == '10+ years', 'emp_length'] = '10'
@@ -317,9 +318,9 @@ def one_hot_encode_eval(X_train, X_test):
                                    columns=encoder.get_feature_names(["emp_title_2"]),index=X_train.index)
     ohe_emp_title_2_test = pd.DataFrame(encoder.transform(X_test[['emp_title_2']]).toarray(),
                                         columns=encoder.get_feature_names(["emp_title_2"]),index=X_test.index)
-    return ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2,
-    ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test, 
-    ohe_sub_grade_test, ohe_emp_title_2_test
+    return (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2, 
+            ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test,
+            ohe_sub_grade_test, ohe_emp_title_2_test)
     
 def one_hot_encode_current(X_current):
     '''One Hot Encoder for 6x categorical vars on X_train, transforming X_current'''
@@ -347,7 +348,7 @@ def one_hot_encode_current(X_current):
         X_train_pre_ohe_for_future_encoder[['emp_title_2']])
     ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_current[['emp_title_2']]).toarray(),
                                    columns=encoder.get_feature_names(["emp_title_2"]),index=X_current.index)
-    return ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2
+    return (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
 
 def concat_X_and_6ohe_dfs(X, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                           ohe_application_type, ohe_sub_grade, ohe_emp_title_2):
@@ -432,6 +433,40 @@ def scale_eval(X_train_all,X_test_all):
 
 ##### RUNNING PREDICTIONS ON CURRENT DATA
 
+def classification_model_eval_prep_pipeline(dfs_list):
+    ### CLASSIFICATION PREP
+    clean_lc_df_eval = clean_LC_data_classification_eval(dfs_list)
+    X_train, X_test, y_train_classif, y_test_classif = preprocessing_eval(clean_lc_df_eval)
+    (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2,
+    ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test, 
+    ohe_sub_grade_test, ohe_emp_title_2_test) = one_hot_encode_eval(X_train, X_test)
+    X_train_classif = concat_X_and_6ohe_dfs(X_train, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
+                                            ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
+    X_test_classif = concat_X_and_6ohe_dfs(X_test, ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, 
+                                           ohe_application_type_test, ohe_sub_grade_test, ohe_emp_title_2_test)
+    prep_all_df_for_classification(X_train_classif)#drops columns in place
+    prep_all_df_for_classification(X_test_classif)#drops columns in place
+    return (X_train_classif, X_test_classif, y_train_classif, y_test_classif) 
+            
+
+def regression_model_eval_prep_pipeline(dfs_list):
+    clean_lc_df_eval = clean_LC_data_classification_eval(dfs_list)
+    X_train, X_test, y_train_classif, y_test_classif = preprocessing_eval(clean_lc_df_eval)
+    (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2,
+    ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test, 
+    ohe_sub_grade_test, ohe_emp_title_2_test) = one_hot_encode_eval(X_train, X_test)
+    X_train_regr = concat_X_and_6ohe_dfs(X_train, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
+                                         ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
+    X_test_regr = concat_X_and_6ohe_dfs(X_test, ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, 
+                                        ohe_application_type_test, ohe_sub_grade_test, ohe_emp_title_2_test)
+    ### REGRESSION PREP
+    y_train_regr, y_train = impute_annu_return_to_y(X_train_regr,y_train_classif)
+    y_test_regr, y_test = impute_annu_return_to_y(X_test_regr,y_train_classif)
+    prep_df_for_regression_eval(X_train_regr,X_test_regr) #drops columns in place
+    X_train_regr_scaled, X_test_regr_scaled = scale_eval(X_train_regr,X_test_regr)
+    return (X_train_regr, X_test_regr, y_train_regr, y_test_regr)
+
+
 def current_pipeline(dfs_list):
     #CLASSIFICATION PIPELINE
     clean_lc_df_current = clean_new_LC_data_classification_current(dfs_list)
@@ -442,13 +477,11 @@ def current_pipeline(dfs_list):
                                           ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     X_current_regr = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
-    X_current_classif.set_index('index',inplace=True)
-    prep_all_df_for_classification(X_current_classif)
+    prep_all_df_for_classification(X_current_classif) #drops columns in place
     loaded_log_reg_v1 = joblib.load('log_reg_v1.joblib')
     current_class_preds_proba = loaded_log_reg_v1.predict_proba(X_current_classif)
     y_current['prob_default'] = current_class_preds_proba[:,0]
     #REGRESSION PIPELINE
-    X_current_regr.set_index('index',inplace=True)
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
     prep_df_for_regression_current(X_current_regr)
     X_current_regr_scaled = scale_current(X_current_regr)

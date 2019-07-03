@@ -184,7 +184,7 @@ def view_columns_by_number_of_rows_that_have_nan(X):
 def clean_LC_data_classification_eval(dfs_list):
     '''Prepare completed loan term LendingClub data for classification to compare to labels.
     Returns clean DataFrame ready for model-based EVALUATION'''
-    raw_lc_df = pd.concat(dfs_list, ignore_index=True)
+    raw_lc_df = pd.concat(dfs_list, ignore_index=True).set_index('id')
     # Uses completed loans
     raw_lc_df = raw_lc_df.loc[(raw_lc_df['loan_status'] == 'Charged Off') |
                               (raw_lc_df['loan_status'] == 'Fully Paid') |
@@ -195,28 +195,30 @@ def clean_LC_data_classification_eval(dfs_list):
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
     lc_df = raw_lc_df[columns_list]
-    lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths']).reset_index(drop=True)
+    lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
+    lc_df.set_index('id',inplace=True)
     lc_df = lc_df.astype(dtype=dtype)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
     lc_df.loc[lc_df['emp_length'] == '10+ years', 'emp_length'] = '10'
     lc_df['emp_length'] = lc_df['emp_length'].str[:1]
     lc_df['emp_length'] = lc_df['emp_length'].astype(float)
-    lc_df = lc_df[lc_df['zip_code'].notnull()].reset_index(drop=True)
-    lc_df = lc_df[lc_df['emp_title'].notnull()].reset_index(drop=True)
+    lc_df = lc_df[lc_df['zip_code'].notnull()]
+    lc_df = lc_df[lc_df['emp_title'].notnull()]
+    #lc_df.set_index('id',inplace=True)
     counts = lc_df['emp_title'].value_counts()
     idx = counts[counts.lt(1600)].index
     lc_df.loc[lc_df['emp_title'].isin(idx) == False, 'emp_title_2'] = lc_df['emp_title']
     lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
     clean_lc_df = lc_df.dropna(subset=
                                ['collections_12_mths_ex_med',
-                                'chargeoff_within_12_mths','last_pymnt_d'],axis=0).reset_index(drop=True)
+                                'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
     return clean_lc_df
 
 
 def clean_new_LC_data_classification_current(dfs_list):
     '''Prepare new, current, investable LendingClub data for classification to make recommendations. 
     Returns clean DataFrame ready for model-based RECOMMENDATION'''
-    raw_lc_df = pd.concat(dfs_list, ignore_index=True)
+    raw_lc_df = pd.concat(dfs_list, ignore_index=True).set_index('id')
     # Uses current loans
     raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
     #raw_lc_df.drop(columns=['loan_status'], inplace=True)
@@ -225,21 +227,22 @@ def clean_new_LC_data_classification_current(dfs_list):
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
     lc_df = raw_lc_df[columns_list]
-    lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths']).reset_index(drop=True)
+    lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
     lc_df = lc_df.astype(dtype=dtype)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
     lc_df.loc[lc_df['emp_length'] == '10+ years', 'emp_length'] = '10'
     lc_df['emp_length'] = lc_df['emp_length'].str[:1]
     lc_df['emp_length'] = lc_df['emp_length'].astype(float)
-    lc_df = lc_df[lc_df['zip_code'].notnull()].reset_index(drop=True)
-    lc_df = lc_df[lc_df['emp_title'].notnull()].reset_index(drop=True)
+    lc_df = lc_df[lc_df['zip_code'].notnull()]
+    lc_df = lc_df[lc_df['emp_title'].notnull()]
+    #lc_df.set_index('id',inplace=True)
     counts = lc_df['emp_title'].value_counts()
     idx = counts[counts.lt(1600)].index
     lc_df.loc[lc_df['emp_title'].isin(idx) == False, 'emp_title_2'] = lc_df['emp_title']
     lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
     clean_lc_df_current = lc_df.dropna(subset=
                                        ['collections_12_mths_ex_med',
-                                        'chargeoff_within_12_mths','last_pymnt_d'],axis=0).reset_index(drop=True)
+                                        'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
     return clean_lc_df_current
 
 ######### PREPROCESSING
@@ -286,34 +289,34 @@ def one_hot_encode_eval(X_train, X_test):
     '''One Hot Encoder for 6x categorical vars on X_train, transforming X_train & X_test'''
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_train[['home_ownership']])
     ohe_home_ownership = pd.DataFrame(encoder.transform(X_train[['home_ownership']]).toarray(),
-                                      columns=encoder.get_feature_names(["home_ownership"]))
+                                      columns=encoder.get_feature_names(["home_ownership"]),index=X_train.index)
     ohe_home_ownership_test = pd.DataFrame(encoder.transform(X_test[['home_ownership']]).toarray(),
-                                           columns=encoder.get_feature_names(["home_ownership"]))
+                                           columns=encoder.get_feature_names(["home_ownership"]),index=X_test.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_train[['purpose']])
     ohe_purpose = pd.DataFrame(encoder.transform(X_train[['purpose']]).toarray(),
-                               columns=encoder.get_feature_names(["purpose"]))
+                               columns=encoder.get_feature_names(["purpose"]),index=X_train.index)
     ohe_purpose_test = pd.DataFrame(encoder.transform(X_test[['purpose']]).toarray(),
-                                    columns=encoder.get_feature_names(["purpose"]))
+                                    columns=encoder.get_feature_names(["purpose"]),index=X_test.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_train[['zip_code']])
     ohe_zip_code = pd.DataFrame(encoder.transform(X_train[['zip_code']]).toarray(),
-                                columns=encoder.get_feature_names(["zip_code"]))
+                                columns=encoder.get_feature_names(["zip_code"]),index=X_train.index)
     ohe_zip_code_test = pd.DataFrame(encoder.transform(X_test[['zip_code']]).toarray(),
-                                     columns=encoder.get_feature_names(["zip_code"]))
+                                     columns=encoder.get_feature_names(["zip_code"]),index=X_test.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_train[['application_type']])
     ohe_application_type = pd.DataFrame(encoder.transform(X_train[['application_type']]).toarray(),
-                                        columns=encoder.get_feature_names(["application_type"]))
+                                        columns=encoder.get_feature_names(["application_type"]),index=X_train.index)
     ohe_application_type_test = pd.DataFrame(encoder.transform(X_test[['application_type']]).toarray(),
-                                             columns=encoder.get_feature_names(["application_type"]))
+                                             columns=encoder.get_feature_names(["application_type"]),index=X_test.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_train[['sub_grade']])
     ohe_sub_grade = pd.DataFrame(encoder.transform(X_train[['sub_grade']]).toarray(),
-                                 columns=encoder.get_feature_names(["sub_grade"]))
+                                 columns=encoder.get_feature_names(["sub_grade"]),index=X_train.index)
     ohe_sub_grade_test = pd.DataFrame(encoder.transform(X_test[['sub_grade']]).toarray(),
-                                      columns=encoder.get_feature_names(["sub_grade"]))
+                                      columns=encoder.get_feature_names(["sub_grade"]),index=X_test.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(X_train[['emp_title_2']])
     ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_train[['emp_title_2']]).toarray(),
-                                   columns=encoder.get_feature_names(["emp_title_2"]))
+                                   columns=encoder.get_feature_names(["emp_title_2"]),index=X_train.index)
     ohe_emp_title_2_test = pd.DataFrame(encoder.transform(X_test[['emp_title_2']]).toarray(),
-                                        columns=encoder.get_feature_names(["emp_title_2"]))
+                                        columns=encoder.get_feature_names(["emp_title_2"]),index=X_test.index)
     return ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2,
     ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test, 
     ohe_sub_grade_test, ohe_emp_title_2_test
@@ -323,33 +326,33 @@ def one_hot_encode_current(X_current):
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['home_ownership']])
     ohe_home_ownership = pd.DataFrame(encoder.transform(X_current[['home_ownership']]).toarray(),
-                                      columns=encoder.get_feature_names(["home_ownership"]))
+                                      columns=encoder.get_feature_names(["home_ownership"]),index=X_current.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['purpose']])
     ohe_purpose = pd.DataFrame(encoder.transform(X_current[['purpose']]).toarray(),
-                               columns=encoder.get_feature_names(["purpose"]))
+                               columns=encoder.get_feature_names(["purpose"]),index=X_current.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['zip_code']])
     ohe_zip_code = pd.DataFrame(encoder.transform(X_current[['zip_code']]).toarray(),
-                                columns=encoder.get_feature_names(["zip_code"]))
+                                columns=encoder.get_feature_names(["zip_code"]),index=X_current.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['application_type']])
     ohe_application_type = pd.DataFrame(encoder.transform(X_current[['application_type']]).toarray(),
-                                        columns=encoder.get_feature_names(["application_type"]))
+                                        columns=encoder.get_feature_names(["application_type"]),index=X_current.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['sub_grade']])
     ohe_sub_grade = pd.DataFrame(encoder.transform(X_current[['sub_grade']]).toarray(),
-                                 columns=encoder.get_feature_names(["sub_grade"]))
+                                 columns=encoder.get_feature_names(["sub_grade"]),index=X_current.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['emp_title_2']])
     ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_current[['emp_title_2']]).toarray(),
-                                   columns=encoder.get_feature_names(["emp_title_2"]))
+                                   columns=encoder.get_feature_names(["emp_title_2"]),index=X_current.index)
     return ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2
 
 def concat_X_and_6ohe_dfs(X, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                           ohe_application_type, ohe_sub_grade, ohe_emp_title_2):
     '''Concatenate one-hot encoded dataframes into a single dataframe'''
-    X_comb = X.reset_index().copy()
+    X_comb = X
     X_comb = pd.concat([X_comb.drop("home_ownership", axis=1), ohe_home_ownership], axis=1)
 
     X_comb = pd.concat([X_comb.drop("purpose", axis=1), ohe_purpose], axis=1)
@@ -451,6 +454,22 @@ def current_pipeline(dfs_list):
     X_current_regr_scaled = scale_current(X_current_regr)
     loaded_ridge_reg_v1 = joblib.load('ridge_lin_reg_v1.joblib')
     current_return_preds = loaded_ridge_reg_v1.predict(X_current_regr_scaled)
+    # Connecting
+    y_predictions = y_current
+    y_predictions['return_preds'] = current_return_preds
+    y_predictions.drop(columns=['annu_return'],inplace=True)
+    final_df = y_predictions.join(X_current_regr)
+    return final_df
+
+def show_recommendation_table(final_df):
+    return rec_table
+
+def show_recommendation_summary(rec_table):
+    return
+
+def plot_recommendation_visuals(rec_table):
+    return
+
     
     
     

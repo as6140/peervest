@@ -176,6 +176,10 @@ def parse_percentage(percentage):
     return float(new) / 100.0
 
 ### CLEANING FUNCTIONS
+def view_columns_by_number_of_rows_that_have_nan(X):
+    null_columns=X.columns[X.isnull().any()]
+    output = X[null_columns].isnull().sum()
+    return output
 
 def clean_LC_data_classification_eval(dfs_list):
     '''Prepare completed loan term LendingClub data for classification to compare to labels.
@@ -186,6 +190,7 @@ def clean_LC_data_classification_eval(dfs_list):
                               (raw_lc_df['loan_status'] == 'Fully Paid') |
                               (raw_lc_df['loan_status'] == 'Default'),:]
     raw_lc_df['loan_status'] = raw_lc_df['loan_status'].map({'Charged Off': 0, 'Default': 0, 'Fully Paid': 1})
+    ###
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
@@ -203,7 +208,8 @@ def clean_LC_data_classification_eval(dfs_list):
     lc_df.loc[lc_df['emp_title'].isin(idx) == False, 'emp_title_2'] = lc_df['emp_title']
     lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
     clean_lc_df = lc_df.dropna(subset=
-                               ['collections_12_mths_ex_med','chargeoff_within_12_mths','last_pymnt_d'],axis=0)
+                               ['collections_12_mths_ex_med',
+                                'chargeoff_within_12_mths','last_pymnt_d'],axis=0).reset_index(drop=True)
     return clean_lc_df
 
 
@@ -214,6 +220,7 @@ def clean_new_LC_data_classification_current(dfs_list):
     # Uses current loans
     raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
     #raw_lc_df.drop(columns=['loan_status'], inplace=True)
+    ###
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
@@ -231,7 +238,8 @@ def clean_new_LC_data_classification_current(dfs_list):
     lc_df.loc[lc_df['emp_title'].isin(idx) == False, 'emp_title_2'] = lc_df['emp_title']
     lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
     clean_lc_df_current = lc_df.dropna(subset=
-                                       ['collections_12_mths_ex_med','chargeoff_within_12_mths','last_pymnt_d'],axis=0)
+                                       ['collections_12_mths_ex_med',
+                                        'chargeoff_within_12_mths','last_pymnt_d'],axis=0).reset_index(drop=True)
     return clean_lc_df_current
 
 ######### PREPROCESSING
@@ -263,7 +271,7 @@ def preprocessing_future_test(clean_lc_df_future):
 def preprocessing_current(clean_lc_df_current):
     '''Initiate X & Y and impute missing values for Current loans'''
     X_current = clean_lc_df_current.drop(columns=['loan_status'])
-    y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['class_pred'])
+    y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['prob_default'])
     X_current.drop(columns=['title'],inplace=True) 
     # CALL IMPUTE FUNCTION on X_current
     X_current = impute_means_zeros_maxs_X(X_current, nan_max_cols, nan_zero_cols, nan_mean_cols)

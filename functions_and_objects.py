@@ -3,8 +3,9 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 import math
+import joblib
 
-columns_list = ['loan_amnt', 'funded_amnt','total_pymnt',
+columns_list2 = ['loan_amnt', 'funded_amnt','total_pymnt',
                 'term', 'int_rate', #'installment',
                 'emp_length', 'home_ownership', 'annual_inc',
                 'verification_status', 'loan_status',
@@ -42,6 +43,46 @@ columns_list = ['loan_amnt', 'funded_amnt','total_pymnt',
                 'total_il_high_credit_limit','grade', 'collection_recovery_fee', 
                 #'total_rec_prncp', 
                 'title', #'total_rec_int', 'total_rec_late_fee', 
+                'sub_grade', 'debt_settlement_flag', 'emp_title','issue_d','last_pymnt_d']
+
+columns_list = ['loan_amnt', 'funded_amnt','total_pymnt',
+                'term', 'int_rate', 'installment',
+                'emp_length', 'home_ownership', 'annual_inc',
+                'verification_status', 'loan_status',
+                'purpose', 'zip_code', 'addr_state', 'dti',
+                'delinq_2yrs', 'earliest_cr_line', 'fico_range_low',
+                'fico_range_high', 'inq_last_6mths', 'mths_since_last_delinq',
+                'mths_since_last_record', 'open_acc', 'pub_rec', 'revol_bal',
+                'revol_util', 'total_acc', 'out_prncp',
+                'out_prncp_inv', 
+                'last_fico_range_high', 'last_fico_range_low',
+                'collections_12_mths_ex_med', 'mths_since_last_major_derog',
+                'policy_code', 'application_type', 'annual_inc_joint', 'dti_joint',
+                'acc_now_delinq', 'tot_coll_amt',
+                'tot_cur_bal', 
+                'open_acc_6m', 'open_act_il', 
+                'open_il_12m',
+                'open_il_24m', 'mths_since_rcnt_il', 
+                'total_bal_il', 'il_util',
+                'open_rv_12m', 'open_rv_24m', 'all_util',
+                'total_rev_hi_lim', 'inq_fi', 'total_cu_tl', 'inq_last_12m',
+                'acc_open_past_24mths', 'avg_cur_bal', 
+                'bc_open_to_buy', 'bc_util',
+                'chargeoff_within_12_mths', 'delinq_amnt', 'mo_sin_old_il_acct',
+                'mo_sin_old_rev_tl_op', 'mo_sin_rcnt_rev_tl_op', 'mo_sin_rcnt_tl',
+                'mort_acc', 'mths_since_recent_bc', 'mths_since_recent_bc_dlq',
+                'mths_since_recent_inq', 
+                'mths_since_recent_revol_delinq',
+                'num_accts_ever_120_pd', 'num_actv_bc_tl', 'num_actv_rev_tl',
+                'num_bc_sats', 'num_bc_tl', 'num_il_tl', 'num_op_rev_tl',
+                'num_rev_accts', 'num_rev_tl_bal_gt_0', 'num_sats',
+                'num_tl_120dpd_2m', 'num_tl_30dpd', 'num_tl_90g_dpd_24m',
+                'num_tl_op_past_12m', 'pct_tl_nvr_dlq', 'percent_bc_gt_75',
+                'pub_rec_bankruptcies', 'tax_liens', 'tot_hi_cred_lim',
+                'total_bal_ex_mort', 'total_bc_limit',
+                'total_il_high_credit_limit','grade', 'collection_recovery_fee', 
+                'total_rec_prncp', 
+                'title', 'total_rec_int', 'total_rec_late_fee', 
                 'sub_grade', 'debt_settlement_flag', 'emp_title','issue_d','last_pymnt_d']
 
 dtype = {
@@ -202,7 +243,7 @@ def clean_LC_data_classification_eval(dfs_list):
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
-    lc_df = raw_lc_df[columns_list]
+    lc_df = raw_lc_df[columns_list2]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
     #lc_df.set_index('id',inplace=True)
     lc_df = lc_df.astype(dtype=dtype)
@@ -234,7 +275,7 @@ def clean_new_LC_data_classification_current(dfs_list):
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
-    lc_df = raw_lc_df[columns_list]
+    lc_df = raw_lc_df[columns_list2]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
     lc_df = lc_df.astype(dtype=dtype)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
@@ -474,7 +515,7 @@ def regression_model_eval_prep_pipeline(dfs_list):
     return (X_train_regr, X_test_regr, y_train_regr, y_test_regr)
 
 
-def current_pipeline(dfs_list):
+def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_string):
     #CLASSIFICATION PIPELINE
     clean_lc_df_current = clean_new_LC_data_classification_current(dfs_list)
     X_current, y_current = preprocessing_current(clean_lc_df_current)
@@ -485,15 +526,15 @@ def current_pipeline(dfs_list):
     X_current_regr = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     prep_all_df_for_classification(X_current_classif) #drops columns in place
-    loaded_log_reg_v1 = joblib.load('log_reg_v1.joblib')
-    current_class_preds_proba = loaded_log_reg_v1.predict_proba(X_current_classif)
+    class_model = joblib.load(class_model_joblib_string)
+    current_class_preds_proba = class_model.predict_proba(X_current_classif)
     y_current['prob_default'] = current_class_preds_proba[:,0]
     #REGRESSION PIPELINE
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
     prep_df_for_regression_current(X_current_regr)
     X_current_regr_scaled = scale_current(X_current_regr)
-    loaded_ridge_reg_v1 = joblib.load('ridge_lin_reg_v1.joblib')
-    current_return_preds = loaded_ridge_reg_v1.predict(X_current_regr_scaled)
+    regr_model = joblib.load(regr_model_joblib_string)
+    current_return_preds = regr_model.predict(X_current_regr_scaled)
     # Connecting
     y_predictions = y_current
     y_predictions['return_preds'] = current_return_preds

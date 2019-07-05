@@ -509,9 +509,9 @@ def regression_model_eval_prep_pipeline(dfs_list):
                                         ohe_application_type_test, ohe_sub_grade_test, ohe_emp_title_2_test)
     ### REGRESSION PREP
     y_train_regr, y_train = impute_annu_return_to_y(X_train_regr,y_train_classif)
-    y_test_regr, y_test = impute_annu_return_to_y(X_test_regr,y_train_classif)
+    y_test_regr, y_test = impute_annu_return_to_y(X_test_regr,y_test_classif)
     prep_df_for_regression_eval(X_train_regr,X_test_regr) #drops columns in place
-    X_train_regr_scaled, X_test_regr_scaled = scale_eval(X_train_regr,X_test_regr)
+    #X_train_regr_scaled, X_test_regr_scaled = scale_eval(X_train_regr,X_test_regr)
     return (X_train_regr, X_test_regr, y_train_regr, y_test_regr)
 
 
@@ -532,9 +532,10 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     #REGRESSION PIPELINE
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
     prep_df_for_regression_current(X_current_regr)
-    X_current_regr_scaled = scale_current(X_current_regr)
+    #X_current_regr_scaled = scale_current(X_current_regr)
     regr_model = joblib.load(regr_model_joblib_string)
-    current_return_preds = regr_model.predict(X_current_regr_scaled)
+    #current_return_preds = regr_model.predict(X_current_regr_scaled)
+    current_return_preds = regr_model.predict(X_current_regr)
     # Connecting
     y_predictions = y_current
     y_predictions['return_preds'] = current_return_preds

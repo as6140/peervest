@@ -584,25 +584,26 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     X_current_regr = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     prep_all_df_for_classification(X_current_classif) #drops columns in place
-    class_model = joblib.load(class_model_joblib_string)
+    #Scaler
     ss = StandardScaler()
     X_current_classif_s = ss.fit_transform(X_current_classif)
-    current_class_preds_proba = class_model.predict_proba(X_current_classif_s)
-    y_current['prob_fullypaid'] = current_class_preds_proba[:,0]
-    y_current['prob_default'] = 1-current_class_preds_proba[:,0]
+    #Joblib Load
+    class_model = joblib.load(class_model_joblib_string)
+    current_class_s_preds_proba = class_model.predict_proba(X_current_classif_s)
+    current_prob_fullypaid = current_class_s_preds_proba
+    current_prob_default = 1-current_class_s_preds_proba
+    y_current['prob_fullypaid'] = current_prob_fullypaid
+    y_current['prob_default'] = current_prob_default
     #REGRESSION PIPELINE
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
     prep_df_for_regression_current(X_current_regr)
-    #X_current_regr_scaled = scale_current(X_current_regr)
     regr_model = joblib.load(regr_model_joblib_string)
-    #current_return_preds = regr_model.predict(X_current_regr_scaled)
     current_return_preds = regr_model.predict(X_current_regr)
+    y_current['return_preds'] = current_return_preds
     # Connecting
-    y_predictions = y_current
-    y_predictions['return_preds'] = current_return_preds
-    y_predictions.drop(columns=['annu_return'],inplace=True)
-    final_df = y_predictions.join(X_current_regr)
-    return final_df
+    #y_predictions.drop(columns=['annu_return'],inplace=True)
+    table_all_current = y_current.join(X_current_regr)
+    return (X_current_regr, y_current, table_all_current)
 
 def show_recommendation_table(final_df):
     return rec_table

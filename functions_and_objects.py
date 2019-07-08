@@ -398,6 +398,48 @@ def one_hot_encode_current(X_current):
                                    columns=encoder.get_feature_names(["emp_title_2"]),index=X_current.index)
     return (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
 
+def one_hot_encode_future(X_train, X_test):
+    '''One Hot Encoder for 6x categorical vars on X_train, transforming X_train & X_test'''
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['home_ownership']])
+    ohe_home_ownership = pd.DataFrame(encoder.transform(X_train[['home_ownership']]).toarray(),
+                                      columns=encoder.get_feature_names(["home_ownership"]),index=X_train.index)
+    ohe_home_ownership_test = pd.DataFrame(encoder.transform(X_test[['home_ownership']]).toarray(),
+                                           columns=encoder.get_feature_names(["home_ownership"]),index=X_test.index)
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['purpose']])
+    ohe_purpose = pd.DataFrame(encoder.transform(X_train[['purpose']]).toarray(),
+                               columns=encoder.get_feature_names(["purpose"]),index=X_train.index)
+    ohe_purpose_test = pd.DataFrame(encoder.transform(X_test[['purpose']]).toarray(),
+                                    columns=encoder.get_feature_names(["purpose"]),index=X_test.index)
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['zip_code']])
+    ohe_zip_code = pd.DataFrame(encoder.transform(X_train[['zip_code']]).toarray(),
+                                columns=encoder.get_feature_names(["zip_code"]),index=X_train.index)
+    ohe_zip_code_test = pd.DataFrame(encoder.transform(X_test[['zip_code']]).toarray(),
+                                     columns=encoder.get_feature_names(["zip_code"]),index=X_test.index)
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['application_type']])
+    ohe_application_type = pd.DataFrame(encoder.transform(X_train[['application_type']]).toarray(),
+                                        columns=encoder.get_feature_names(["application_type"]),index=X_train.index)
+    ohe_application_type_test = pd.DataFrame(encoder.transform(X_test[['application_type']]).toarray(),
+                                             columns=encoder.get_feature_names(["application_type"]),index=X_test.index)
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['sub_grade']])
+    ohe_sub_grade = pd.DataFrame(encoder.transform(X_train[['sub_grade']]).toarray(),
+                                 columns=encoder.get_feature_names(["sub_grade"]),index=X_train.index)
+    ohe_sub_grade_test = pd.DataFrame(encoder.transform(X_test[['sub_grade']]).toarray(),
+                                      columns=encoder.get_feature_names(["sub_grade"]),index=X_test.index)
+    encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+        X_train_pre_ohe_for_future_encoder[['emp_title_2']])
+    ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_train[['emp_title_2']]).toarray(),
+                                   columns=encoder.get_feature_names(["emp_title_2"]),index=X_train.index)
+    ohe_emp_title_2_test = pd.DataFrame(encoder.transform(X_test[['emp_title_2']]).toarray(),
+                                        columns=encoder.get_feature_names(["emp_title_2"]),index=X_test.index)
+    return (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2, 
+            ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test,
+            ohe_sub_grade_test, ohe_emp_title_2_test)
+
 def concat_X_and_6ohe_dfs(X, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                           ohe_application_type, ohe_sub_grade, ohe_emp_title_2):
     '''Concatenate one-hot encoded dataframes into a single dataframe'''
@@ -482,7 +524,6 @@ def scale_eval(X_train_all,X_test_all):
 ##### RUNNING PREDICTIONS ON CURRENT DATA
 
 def classification_model_eval_prep_pipeline(dfs_list):
-    ### CLASSIFICATION PREP
     clean_lc_df_eval = clean_LC_data_classification_eval(dfs_list)
     X_train, X_test, y_train_classif, y_test_classif = preprocessing_eval(clean_lc_df_eval)
     (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2,
@@ -495,6 +536,23 @@ def classification_model_eval_prep_pipeline(dfs_list):
     prep_all_df_for_classification(X_train_classif)#drops columns in place
     prep_all_df_for_classification(X_test_classif)#drops columns in place
     return (X_train_classif, X_test_classif, y_train_classif, y_test_classif) 
+
+#     #combine train & test datasets for FUTURE analysis (all future data is a test set)
+#     X_classif = pd.concat([X_train_classif,X_test_classif])
+#     y_classif = pd.concat([y_train_classif,y_test_classif])
+# #     #scaler
+# #     ss = StandardScaler()
+# #     X_train_classif_s = ss.fit_transform(X_train_classif)
+# #     X_test_classif_s = ss.transform(X_test_classif)
+# #     X_classif_s = ss.transform(X_classif)
+# #     #proper data types
+# #     X_train_classif_s = X_train_classif_s.astype('float32')
+# #     X_test_classif_s = X_test_classif_s.astype('float32')
+# #     X_classif_s = X_classif_s.astype('float32')
+# #     y_train_classif['loan_status'] = y_train_classif['loan_status'].astype(int)
+# #     y_test_classif['loan_status'] = y_test_classif['loan_status'].astype(int)
+# #     y_classif['loan_status'] = y_classif['loan_status'].astype(int)
+#     return (X_train_classif, X_test_classif, y_train_classif, y_test_classif, X_classif, y_classif) 
             
 
 def regression_model_eval_prep_pipeline(dfs_list):
@@ -527,8 +585,11 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     prep_all_df_for_classification(X_current_classif) #drops columns in place
     class_model = joblib.load(class_model_joblib_string)
-    current_class_preds_proba = class_model.predict_proba(X_current_classif)
-    y_current['prob_default'] = current_class_preds_proba[:,0]
+    ss = StandardScaler()
+    X_current_classif_s = ss.fit_transform(X_current_classif)
+    current_class_preds_proba = class_model.predict_proba(X_current_classif_s)
+    y_current['prob_fullypaid'] = current_class_preds_proba[:,0]
+    y_current['prob_default'] = 1-current_class_preds_proba[:,0]
     #REGRESSION PIPELINE
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
     prep_df_for_regression_current(X_current_regr)

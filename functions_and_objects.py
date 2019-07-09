@@ -181,7 +181,7 @@ str_to_float_cols = ['mths_since_last_delinq', 'mths_since_last_record',
                      'bc_open_to_buy', 'mo_sin_old_il_acct', 
                      'mths_since_recent_bc', 'mths_since_recent_bc_dlq', 
                      'mths_since_recent_revol_delinq', 'num_tl_120dpd_2m', 
-                     'percent_bc_gt_75']
+                     'percent_bc_gt_75','annual_inc_joint', 'dti_joint']
 
 ############ DATA CLEANING
 
@@ -355,8 +355,8 @@ def clean_new_LC_data_classification_current(dfs_list):
     clean_lc_df_current = lc_df.dropna(subset=
                                        ['collections_12_mths_ex_med',
                                         'chargeoff_within_12_mths'],axis=0) #'last_pymnt_d' nans dropped in training
-    clean_lc_df['bc_util'].replace(' ',np.nan,inplace=True)
-    clean_lc_df['bc_util'] = clean_lc_df['bc_util'].astype('float64')
+    clean_lc_df_current['bc_util'].replace(' ',np.nan,inplace=True)
+    clean_lc_df_current['bc_util'] = clean_lc_df_current['bc_util'].astype('float64')
     return clean_lc_df_current
 
 ######### PREPROCESSING
@@ -637,6 +637,58 @@ def regression_model_eval_prep_pipeline(dfs_list):
     #X_train_regr_scaled, X_test_regr_scaled = scale_eval(X_train_regr,X_test_regr)
     return (X_train_regr, X_test_regr, y_train_regr, y_test_regr)
 
+def clean_browseNotes(browseNotes):
+    browseNotes.drop(columns=['accept_d', 'credit_pull_d', 'disbursement_method',
+                              'effective_int_rate', 'exp_d', 'exp_default_rate', 'housing_payment',
+                              'ils_exp_d', 'is_inc_v', 'list_d', 'msa', 'mtg_payment',
+                              'review_status', 'review_status_d', 'service_fee_rate',
+                              'verified_status_joint'],inplace=True)
+    to_add = ['collection_recovery_fee',
+     'debt_settlement_flag',
+     'debt_settlement_flag_date',
+     'deferral_term',
+     'funded_amnt_inv',
+     'hardship_amount',
+     'hardship_dpd',
+     'hardship_end_date',
+     'hardship_flag',
+     'hardship_last_payment_amount',
+     'hardship_length',
+     'hardship_loan_status',
+     'hardship_payoff_balance_amount',
+     'hardship_reason',
+     'hardship_start_date',
+     'hardship_status',
+     'hardship_type',
+     'issue_d',
+     'last_credit_pull_d',
+     'last_fico_range_high',
+     'last_fico_range_low',
+     'last_pymnt_amnt',
+     'last_pymnt_d',
+     'loan_status',
+     'next_pymnt_d',
+     'orig_projected_additional_accrued_interest',
+     'out_prncp',
+     'out_prncp_inv',
+     'payment_plan_start_date',
+     'policy_code',
+     'pymnt_plan',
+     'recoveries',
+     'settlement_amount',
+     'settlement_date',
+     'settlement_percentage',
+     'settlement_status',
+     'settlement_term',
+     'total_pymnt',
+     'total_pymnt_inv',
+     'total_rec_int',
+     'total_rec_late_fee',
+     'total_rec_prncp',
+     'verification_status',
+     'verification_status_joint']
+    for col in to_add:
+        browseNotes[col] = np.nan
 
 def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_string):
     #CLASSIFICATION PIPELINE
@@ -649,6 +701,10 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     X_current_regr = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     prep_all_df_for_classification(X_current_classif) #drops columns in place
+    X_current_classif.fillna(0,inplace=True)
+    #X_current_regr.fillna(0,inplace=True) 
+    
+    
     #Scaler
     ss = StandardScaler()
     X_current_classif_s = ss.fit_transform(X_current_classif)

@@ -177,6 +177,11 @@ nan_mean_cols = [
     'revol_util',
 ]
 
+str_to_float_cols = ['mths_since_last_delinq', 'mths_since_last_record', 
+                     'bc_open_to_buy', 'mo_sin_old_il_acct', 
+                     'mths_since_recent_bc', 'mths_since_recent_bc_dlq', 
+                     'mths_since_recent_revol_delinq', 'num_tl_120dpd_2m', 
+                     'percent_bc_gt_75']
 
 ############ DATA CLEANING
 
@@ -187,6 +192,11 @@ def impute_means_zeros_maxs_X_train_X_test(X_train, X_test, nan_max_cols, nan_ze
     given column list for each impute type'''
     for col in X_train:
         dt = X_train[col].dtype
+        if col in str_to_float_cols:
+            X_train[col].replace(' ',np.nan,inplace=True)
+            X_train[col] = X_train[col].astype('float64')
+            X_test[col].replace(' ',np.nan,inplace=True)
+            X_test[col] = X_test[col].astype('float64')
         #FILL MISSING WITH MEAN from X_train, in both X_train & X_test
         if col in nan_mean_cols:
             X_train[col] = X_train[col].fillna(np.nanmean(X_train[col].values))
@@ -205,6 +215,9 @@ def impute_means_zeros_maxs_X(X, nan_max_cols, nan_zero_cols, nan_mean_cols):
     '''Impute means, zeros, and maxs in X given column list for each impute type'''
     for col in X:
         dt = X[col].dtype
+        if col in str_to_float_cols:
+            X[col].replace(' ',np.nan,inplace=True)
+            X[col] = X[col].astype('float64')
         #FILL MISSING WITH MEAN from X
         if col in nan_mean_cols:
             X[col] = X[col].fillna(np.nanmean(X[col].values))
@@ -216,6 +229,45 @@ def impute_means_zeros_maxs_X(X, nan_max_cols, nan_zero_cols, nan_mean_cols):
             X[col] = X[col].fillna(np.nanmax(X[col].values) * 5)
     return X
 
+
+############ DATA CLEANING
+
+###IMPUTE FUNCTIONS
+
+# def impute_means_zeros_maxs_X_train_X_test(X_train, X_test, nan_max_cols, nan_zero_cols, nan_mean_cols):
+#     '''Impute means, zeros, and maxs in X_train & X_test based on X_train values, 
+#     given column list for each impute type'''
+#     for col in X_train:
+#         dt = X_train[col].dtype
+#         #FILL MISSING WITH MEAN from X_train, in both X_train & X_test
+#         if col in nan_mean_cols:
+#             X_train[col] = X_train[col].fillna(np.nanmean(X_train[col].values))
+#             X_test[col] = X_test[col].fillna(np.nanmean(X_train[col].values))
+#         #FILL MISSING WITH ZEROS from X_train, in both X_train & X_test
+#         if col in nan_zero_cols:
+#             X_train[col] = X_train[col].fillna(0.0)
+#             X_test[col] = X_test[col].fillna(0.0)
+#         #FILL MISSING WITH MAX from X_train, in both X_train & X_test
+#         if col in nan_max_cols:
+#             X_train[col] = X_train[col].fillna(np.nanmax(X_train[col].values) * 5)
+#             X_test[col] = X_test[col].fillna(np.nanmax(X_train[col].values) * 5)
+#     return X_train, X_test
+
+# def impute_means_zeros_maxs_X(X, nan_max_cols, nan_zero_cols, nan_mean_cols):
+#     '''Impute means, zeros, and maxs in X given column list for each impute type'''
+#     for col in X:
+#         dt = X[col].dtype
+#         #FILL MISSING WITH MEAN from X
+#         if col in nan_mean_cols:
+#             X[col] = X[col].fillna(np.nanmean(X[col].values))
+#         #FILL MISSING WITH ZEROS from X
+#         if col in nan_zero_cols:
+#             X[col] = X[col].fillna(0.0)
+#         #FILL MISSING WITH MAX from X
+#         if col in nan_max_cols:
+#             X[col] = X[col].fillna(np.nanmax(X[col].values) * 5)
+#     return X
+
 ### PERCENTAGE PARSING
 
 def parse_percentage(percentage):
@@ -223,6 +275,15 @@ def parse_percentage(percentage):
     if str(percentage) == 'nan': return math.nan
     new = percentage.replace('%', '')
     return float(new) / 100.0
+
+
+def parse_percentage_browse(percentage):
+    '''Change percentage features into floats'''
+    if str(percentage) == 'nan': return math.nan
+    new = percentage
+    return float(new) / 100.0
+
+
 
 ### CLEANING FUNCTIONS
 def view_columns_by_number_of_rows_that_have_nan(X):
@@ -269,12 +330,12 @@ def clean_new_LC_data_classification_current(dfs_list):
     Returns clean DataFrame ready for model-based RECOMMENDATION'''
     raw_lc_df = pd.concat(dfs_list, ignore_index=True).set_index('id')
     # Uses current loans
-    raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
+    #raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
     #raw_lc_df.drop(columns=['loan_status'], inplace=True)
     ###
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
-    raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
-    raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
+    raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage_browse)
+    raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage_browse)
     lc_df = raw_lc_df[columns_list2]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
     lc_df = lc_df.astype(dtype=dtype)
@@ -291,7 +352,7 @@ def clean_new_LC_data_classification_current(dfs_list):
     lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
     clean_lc_df_current = lc_df.dropna(subset=
                                        ['collections_12_mths_ex_med',
-                                        'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
+                                        'chargeoff_within_12_mths'],axis=0) #'last_pymnt_d' nans dropped in training
     return clean_lc_df_current
 
 ######### PREPROCESSING

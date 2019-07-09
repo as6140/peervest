@@ -701,10 +701,12 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     X_current_regr = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     prep_all_df_for_classification(X_current_classif) #drops columns in place
-    X_current_classif.fillna(0,inplace=True)
-    #X_current_regr.fillna(0,inplace=True) 
-    
-    
+    X_current_classif['total_pymnt'].fillna(X_current_classif['loan_amnt']*0.5,inplace=True)
+    X_current_classif['last_fico_range_high'].fillna(X_current_classif['fico_range_high'],inplace=True)
+    X_current_classif['last_fico_range_low'].fillna(X_current_classif['fico_range_low'],inplace=True)
+    X_current_classif['policy_code'].fillna(1,inplace=True)
+    X_current_classif['collection_recovery_fee'].fillna(0,inplace=True)
+    print(X_current_classif.columns[X_current_classif.isna().all()].tolist())
     #Scaler
     ss = StandardScaler()
     X_current_classif_s = ss.fit_transform(X_current_classif)
@@ -718,6 +720,13 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     #REGRESSION PIPELINE
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
     prep_df_for_regression_current(X_current_regr)
+    #NaN columns in browseNotes
+    X_current_regr['total_pymnt'].fillna(X_current_regr['loan_amnt']*0.5,inplace=True)
+    X_current_regr['last_fico_range_high'].fillna(X_current_regr['fico_range_high'],inplace=True)
+    X_current_regr['last_fico_range_low'].fillna(X_current_regr['fico_range_low'],inplace=True)
+    X_current_regr['policy_code'].fillna(1,inplace=True)
+    X_current_regr['collection_recovery_fee'].fillna(0,inplace=True)
+    #load model
     regr_model = joblib.load(regr_model_joblib_string)
     current_return_preds = regr_model.predict(X_current_regr)
     y_current['return_preds'] = current_return_preds

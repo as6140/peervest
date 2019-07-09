@@ -322,6 +322,8 @@ def clean_LC_data_classification_eval(dfs_list):
     clean_lc_df = lc_df.dropna(subset=
                                ['collections_12_mths_ex_med',
                                 'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
+#     clean_lc_df['bc_util'].replace(' ',np.nan,inplace=True)
+#     clean_lc_df['bc_util'] = clean_lc_df['bc_util'].astype('float64')
     return clean_lc_df
 
 
@@ -353,6 +355,8 @@ def clean_new_LC_data_classification_current(dfs_list):
     clean_lc_df_current = lc_df.dropna(subset=
                                        ['collections_12_mths_ex_med',
                                         'chargeoff_within_12_mths'],axis=0) #'last_pymnt_d' nans dropped in training
+    clean_lc_df['bc_util'].replace(' ',np.nan,inplace=True)
+    clean_lc_df['bc_util'] = clean_lc_df['bc_util'].astype('float64')
     return clean_lc_df_current
 
 ######### PREPROCESSING

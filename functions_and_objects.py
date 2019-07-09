@@ -5,6 +5,144 @@ from sklearn.model_selection import train_test_split
 import math
 import joblib
 
+##'total_pymnt', 'issue_d', 'last_pymnt_d'
+## will need to be dropped before regression training at some point
+
+dtype2 = {
+      'loan_amnt': 'int64',
+      'term': 'object',
+      'int_rate': 'float64',
+      'emp_length': 'object',
+      'home_ownership': 'object',
+      'annual_inc': 'float64',
+      'verification_status': 'object',
+      'loan_status': 'object',
+      'purpose': 'object',
+      'zip_code': 'object',
+      'addr_state': 'object',
+      'dti': 'float64',
+      'delinq_2yrs': 'int64',
+      'fico_range_low': 'int64',
+      'fico_range_high': 'int64',
+      'inq_last_6mths': 'int64',
+      'open_acc': 'int64',
+      'pub_rec': 'int64',
+      'revol_bal': 'int64',
+      'total_acc': 'int64',
+      'application_type': 'object'
+}
+
+dtype = {
+        'loan_amnt': 'int64',
+        'term': 'object',
+        'int_rate': 'float64',
+        'emp_length': 'object',
+        'home_ownership': 'object',
+        'annual_inc': 'float64',
+        #'verification_status': 'object',
+        #'loan_status': 'object',
+        'purpose': 'object',
+        'zip_code': 'object',
+        'addr_state': 'object',
+        'dti': 'float64',
+        'delinq_2yrs': 'int64',
+        'fico_range_low': 'int64',
+        'fico_range_high': 'int64',
+        'inq_last_6mths': 'int64',
+        'open_acc': 'int64',
+        'pub_rec': 'int64',
+        'revol_bal': 'int64',
+        'total_acc': 'int64',
+        'application_type': 'object',
+        #'dti_joint': 'float64'
+}
+
+columns_list4 = ['loan_amnt', 'funded_amnt','total_pymnt',
+                'term', 'int_rate', #'installment',
+                'emp_length', 'home_ownership', 'annual_inc',
+                #'verification_status', 'loan_status',
+                'purpose', 'zip_code', 'addr_state', 'dti',
+                'delinq_2yrs', 'earliest_cr_line', 'fico_range_low',
+                'fico_range_high', 'inq_last_6mths', 'mths_since_last_delinq',
+                'mths_since_last_record', 'open_acc', 'pub_rec', 'revol_bal',
+                'revol_util', 'total_acc', #'out_prncp',
+                #'out_prncp_inv', 
+                #'last_fico_range_high', 'last_fico_range_low',
+                'collections_12_mths_ex_med', 'mths_since_last_major_derog',
+                #'policy_code', 
+                'application_type', #'annual_inc_joint', #'dti_joint',
+                'acc_now_delinq', 'tot_coll_amt',
+                #'tot_cur_bal', 
+                'open_acc_6m', #'open_act_il', 
+                #'open_il_12m',
+                #'open_il_24m', #'mths_since_rcnt_il', 
+                #'total_bal_il', 'il_util',
+                'open_rv_12m', 'open_rv_24m', 'all_util',
+                'total_rev_hi_lim', 'inq_fi', 'total_cu_tl', 'inq_last_12m',
+                'acc_open_past_24mths', #'avg_cur_bal', 
+                'bc_open_to_buy', 'bc_util',
+                'chargeoff_within_12_mths', 'delinq_amnt', 'mo_sin_old_il_acct',
+                'mo_sin_old_rev_tl_op', 'mo_sin_rcnt_rev_tl_op', #'mo_sin_rcnt_tl',
+                'mort_acc', 'mths_since_recent_bc', 'mths_since_recent_bc_dlq',
+                #'mths_since_recent_inq', 
+                'mths_since_recent_revol_delinq',
+                'num_accts_ever_120_pd', 'num_actv_bc_tl', 'num_actv_rev_tl',
+                'num_bc_sats', 'num_bc_tl', 'num_il_tl', 'num_op_rev_tl',
+                'num_rev_accts', 'num_rev_tl_bal_gt_0', 'num_sats',
+                'num_tl_120dpd_2m', 'num_tl_30dpd', 'num_tl_90g_dpd_24m',
+                'num_tl_op_past_12m', 'pct_tl_nvr_dlq', 'percent_bc_gt_75',
+                'pub_rec_bankruptcies', 'tax_liens', 'tot_hi_cred_lim',
+                'total_bal_ex_mort', 'total_bc_limit',
+                'total_il_high_credit_limit','grade', #'collection_recovery_fee', 
+                #'total_rec_prncp', 
+                #'title', #'total_rec_int', 'total_rec_late_fee', 
+                'sub_grade', #'debt_settlement_flag', 
+                'emp_title', 'issue_d','last_pymnt_d']
+
+columns_list3 = ['loan_amnt', 'funded_amnt',#'total_pymnt',
+                'term', 'int_rate', #'installment',
+                'emp_length', 'home_ownership', 'annual_inc',
+                #'verification_status', 
+                'loan_status',
+                'purpose', 'zip_code', 'addr_state', 'dti',
+                'delinq_2yrs', 'earliest_cr_line', 'fico_range_low',
+                'fico_range_high', 'inq_last_6mths', 'mths_since_last_delinq',
+                'mths_since_last_record', 'open_acc', 'pub_rec', 'revol_bal',
+                'revol_util', 'total_acc', #'out_prncp',
+                #'out_prncp_inv', 
+                #'last_fico_range_high', 'last_fico_range_low',
+                'collections_12_mths_ex_med', 'mths_since_last_major_derog',
+                #'policy_code', 
+                'application_type', #'annual_inc_joint', #'dti_joint',
+                'acc_now_delinq', 'tot_coll_amt',
+                #'tot_cur_bal', 
+                'open_acc_6m', #'open_act_il', 
+                #'open_il_12m',
+                #'open_il_24m', #'mths_since_rcnt_il', 
+                #'total_bal_il', 'il_util',
+                'open_rv_12m', 'open_rv_24m', 'all_util',
+                'total_rev_hi_lim', 'inq_fi', 'total_cu_tl', 'inq_last_12m',
+                'acc_open_past_24mths', #'avg_cur_bal', 
+                'bc_open_to_buy', 'bc_util',
+                'chargeoff_within_12_mths', 'delinq_amnt', 'mo_sin_old_il_acct',
+                'mo_sin_old_rev_tl_op', 'mo_sin_rcnt_rev_tl_op', #'mo_sin_rcnt_tl',
+                'mort_acc', 'mths_since_recent_bc', 'mths_since_recent_bc_dlq',
+                #'mths_since_recent_inq', 
+                'mths_since_recent_revol_delinq',
+                'num_accts_ever_120_pd', 'num_actv_bc_tl', 'num_actv_rev_tl',
+                'num_bc_sats', 'num_bc_tl', 'num_il_tl', 'num_op_rev_tl',
+                'num_rev_accts', 'num_rev_tl_bal_gt_0', 'num_sats',
+                'num_tl_120dpd_2m', 'num_tl_30dpd', 'num_tl_90g_dpd_24m',
+                'num_tl_op_past_12m', 'pct_tl_nvr_dlq', 'percent_bc_gt_75',
+                'pub_rec_bankruptcies', 'tax_liens', 'tot_hi_cred_lim',
+                'total_bal_ex_mort', 'total_bc_limit',
+                'total_il_high_credit_limit','grade', #'collection_recovery_fee', 
+                #'total_rec_prncp', 
+                #'title', #'total_rec_int', 'total_rec_late_fee', 
+                'sub_grade', #'debt_settlement_flag', 
+                'emp_title'] #'issue_d','last_pymnt_d']
+
+
 columns_list2 = ['loan_amnt', 'funded_amnt','total_pymnt',
                 'term', 'int_rate', #'installment',
                 'emp_length', 'home_ownership', 'annual_inc',
@@ -85,30 +223,6 @@ columns_list = ['loan_amnt', 'funded_amnt','total_pymnt',
                 'title', 'total_rec_int', 'total_rec_late_fee', 
                 'sub_grade', 'debt_settlement_flag', 'emp_title','issue_d','last_pymnt_d']
 
-dtype = {
-      'loan_amnt': 'int64',
-      'term': 'object',
-      'int_rate': 'float64',
-      'emp_length': 'object',
-      'home_ownership': 'object',
-      'annual_inc': 'float64',
-      'verification_status': 'object',
-      'loan_status': 'object',
-      'purpose': 'object',
-      'zip_code': 'object',
-      'addr_state': 'object',
-      'dti': 'float64',
-      'delinq_2yrs': 'int64',
-      'fico_range_low': 'int64',
-      'fico_range_high': 'int64',
-      'inq_last_6mths': 'int64',
-      'open_acc': 'int64',
-      'pub_rec': 'int64',
-      'revol_bal': 'int64',
-      'total_acc': 'int64',
-      'application_type': 'object'
-}
-
 nan_max_cols = [
     'mths_since_last_delinq',
     'mths_since_last_record',
@@ -177,6 +291,11 @@ nan_mean_cols = [
     'revol_util',
 ]
 
+str_to_float_cols = ['mths_since_last_delinq', 'mths_since_last_record', 
+                     'bc_open_to_buy', 'mo_sin_old_il_acct', 
+                     'mths_since_recent_bc', 'mths_since_recent_bc_dlq', 
+                     'mths_since_recent_revol_delinq', 'num_tl_120dpd_2m', 
+                     'percent_bc_gt_75']
 
 ############ DATA CLEANING
 
@@ -187,6 +306,11 @@ def impute_means_zeros_maxs_X_train_X_test(X_train, X_test, nan_max_cols, nan_ze
     given column list for each impute type'''
     for col in X_train:
         dt = X_train[col].dtype
+        if col in str_to_float_cols:
+            X_train[col].replace(' ',np.nan,inplace=True)
+            X_train[col] = X_train[col].astype('float64')
+            X_test[col].replace(' ',np.nan,inplace=True)
+            X_test[col] = X_test[col].astype('float64')
         #FILL MISSING WITH MEAN from X_train, in both X_train & X_test
         if col in nan_mean_cols:
             X_train[col] = X_train[col].fillna(np.nanmean(X_train[col].values))
@@ -205,6 +329,9 @@ def impute_means_zeros_maxs_X(X, nan_max_cols, nan_zero_cols, nan_mean_cols):
     '''Impute means, zeros, and maxs in X given column list for each impute type'''
     for col in X:
         dt = X[col].dtype
+        if col in str_to_float_cols:
+            X[col].replace(' ',np.nan,inplace=True)
+            X[col] = X[col].astype('float64')
         #FILL MISSING WITH MEAN from X
         if col in nan_mean_cols:
             X[col] = X[col].fillna(np.nanmean(X[col].values))
@@ -222,6 +349,12 @@ def parse_percentage(percentage):
     '''Change percentage features into floats'''
     if str(percentage) == 'nan': return math.nan
     new = percentage.replace('%', '')
+    return float(new) / 100.0
+
+def parse_percentage_browse(percentage):
+    '''Change percentage features into floats'''
+    if str(percentage) == 'nan': return math.nan
+    new = percentage
     return float(new) / 100.0
 
 ### CLEANING FUNCTIONS
@@ -243,7 +376,42 @@ def clean_LC_data_classification_eval(dfs_list):
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
-    lc_df = raw_lc_df[columns_list2]
+    lc_df = raw_lc_df[columns_list3]
+    lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
+    #lc_df.set_index('id',inplace=True)
+    lc_df = lc_df.astype(dtype=dtype)
+    lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
+    lc_df.loc[lc_df['emp_length'] == '10+ years', 'emp_length'] = '10'
+    lc_df['emp_length'] = lc_df['emp_length'].str[:1]
+    lc_df['emp_length'] = lc_df['emp_length'].astype(float)
+    lc_df = lc_df[lc_df['zip_code'].notnull()]
+    lc_df = lc_df[lc_df['emp_title'].notnull()]
+    #lc_df.set_index('id',inplace=True)
+    counts = lc_df['emp_title'].value_counts()
+    idx = counts[counts.lt(1600)].index
+    lc_df.loc[lc_df['emp_title'].isin(idx) == False, 'emp_title_2'] = lc_df['emp_title']
+    lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
+    clean_lc_df = lc_df.dropna(subset=
+                               ['collections_12_mths_ex_med',
+                                'chargeoff_within_12_mths'],axis=0)
+    clean_lc_df['bc_util'].replace(' ',np.nan,inplace=True)
+    clean_lc_df['bc_util'] = clean_lc_df['bc_util'].astype('float64')
+    return clean_lc_df
+
+def clean_LC_data_regression_eval(dfs_list):
+    '''Prepare completed loan term LendingClub data for classification to compare to labels.
+    Returns clean DataFrame ready for model-based EVALUATION'''
+    raw_lc_df = pd.concat(dfs_list, ignore_index=True).set_index('id')
+    # Uses completed loans
+    raw_lc_df = raw_lc_df.loc[(raw_lc_df['loan_status'] == 'Charged Off') |
+                              (raw_lc_df['loan_status'] == 'Fully Paid') |
+                              (raw_lc_df['loan_status'] == 'Default'),:]
+    raw_lc_df['loan_status'] = raw_lc_df['loan_status'].map({'Charged Off': 0, 'Default': 0, 'Fully Paid': 1})
+    ###
+    raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
+    raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
+    raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
+    lc_df = raw_lc_df[columns_list4]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
     #lc_df.set_index('id',inplace=True)
     lc_df = lc_df.astype(dtype=dtype)
@@ -261,21 +429,52 @@ def clean_LC_data_classification_eval(dfs_list):
     clean_lc_df = lc_df.dropna(subset=
                                ['collections_12_mths_ex_med',
                                 'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
+    clean_lc_df['bc_util'].replace(' ',np.nan,inplace=True)
+    clean_lc_df['bc_util'] = clean_lc_df['bc_util'].astype('float64')
     return clean_lc_df
 
+# def clean_new_LC_data_classification_current(dfs_list):
+#     '''Prepare new, current, investable LendingClub data for classification to make recommendations. 
+#     Returns clean DataFrame ready for model-based RECOMMENDATION'''
+#     raw_lc_df = pd.concat(dfs_list, ignore_index=True).set_index('id')
+#     # Uses current loans
+#     raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
+#     #raw_lc_df.drop(columns=['loan_status'], inplace=True)
+#     ###
+#     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
+#     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
+#     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
+#     lc_df = raw_lc_df[columns_list2]
+#     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
+#     lc_df = lc_df.astype(dtype=dtype2)
+#     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
+#     lc_df.loc[lc_df['emp_length'] == '10+ years', 'emp_length'] = '10'
+#     lc_df['emp_length'] = lc_df['emp_length'].str[:1]
+#     lc_df['emp_length'] = lc_df['emp_length'].astype(float)
+#     lc_df = lc_df[lc_df['zip_code'].notnull()]
+#     lc_df = lc_df[lc_df['emp_title'].notnull()]
+#     #lc_df.set_index('id',inplace=True)
+#     counts = lc_df['emp_title'].value_counts()
+#     idx = counts[counts.lt(1600)].index
+#     lc_df.loc[lc_df['emp_title'].isin(idx) == False, 'emp_title_2'] = lc_df['emp_title']
+#     lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
+#     clean_lc_df_current = lc_df.dropna(subset=
+#                                        ['collections_12_mths_ex_med',
+#                                         'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
+#     return clean_lc_df_current
 
-def clean_new_LC_data_classification_current(dfs_list):
+def clean_new_LC_data_classification_browse(dfs_list):
     '''Prepare new, current, investable LendingClub data for classification to make recommendations. 
     Returns clean DataFrame ready for model-based RECOMMENDATION'''
     raw_lc_df = pd.concat(dfs_list, ignore_index=True).set_index('id')
     # Uses current loans
-    raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
+    #raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
     #raw_lc_df.drop(columns=['loan_status'], inplace=True)
     ###
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
-    raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage)
-    raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage)
-    lc_df = raw_lc_df[columns_list2]
+    raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage_browse)
+    raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage_browse)
+    lc_df = raw_lc_df[columns_list3]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
     lc_df = lc_df.astype(dtype=dtype)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
@@ -289,10 +488,12 @@ def clean_new_LC_data_classification_current(dfs_list):
     idx = counts[counts.lt(1600)].index
     lc_df.loc[lc_df['emp_title'].isin(idx) == False, 'emp_title_2'] = lc_df['emp_title']
     lc_df.loc[lc_df['emp_title'].isin(idx), 'emp_title_2'] = 'Other'
-    clean_lc_df_current = lc_df.dropna(subset=
+    clean_lc_df_browse = lc_df.dropna(subset=
                                        ['collections_12_mths_ex_med',
-                                        'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
-    return clean_lc_df_current
+                                        'chargeoff_within_12_mths'],axis=0)
+    clean_lc_df_browse['bc_util'].replace(' ',np.nan,inplace=True)
+    clean_lc_df_browse['bc_util'] = clean_lc_df_browse['bc_util'].astype('float64')
+    return clean_lc_df_browse
 
 ######### PREPROCESSING
 
@@ -303,10 +504,11 @@ def preprocessing_eval(clean_lc_df):
     X = clean_lc_df.drop(columns=['loan_status'])
     y = clean_lc_df[['loan_status']]
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0,test_size=0.3)
-    X_train.drop(columns=['title'],inplace=True)
-    X_test.drop(columns=['title'],inplace=True)
+    #X_train.drop(columns=['title'],inplace=True)
+    #X_test.drop(columns=['title'],inplace=True)
     # CALL IMPUTE FUNCTION on X_train, X_test
     X_train, X_test = impute_means_zeros_maxs_X_train_X_test(X_train, X_test, nan_max_cols, nan_zero_cols, nan_mean_cols)
+    X_train.to_pickle('X_train_pre_ohe_for_future_encoder.pkl')
     return X_train, X_test, y_train, y_test
 
 def preprocessing_future_test(clean_lc_df_future):
@@ -320,14 +522,23 @@ def preprocessing_future_test(clean_lc_df_future):
     X_future = impute_means_zeros_maxs_X(X_future, nan_max_cols, nan_zero_cols, nan_mean_cols)
     return X_future, y_future
 
-def preprocessing_current(clean_lc_df_current):
+# def preprocessing_current(clean_lc_df_current):
+#     '''Initiate X & Y and impute missing values for Current loans'''
+#     X_current = clean_lc_df_current.drop(columns=['loan_status'])
+#     y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['prob_default'])
+#     X_current.drop(columns=['title'],inplace=True) 
+#     # CALL IMPUTE FUNCTION on X_current
+#     X_current = impute_means_zeros_maxs_X(X_current, nan_max_cols, nan_zero_cols, nan_mean_cols)
+#     return X_current, y_current
+
+def preprocessing_browse(clean_lc_df_browse):
     '''Initiate X & Y and impute missing values for Current loans'''
-    X_current = clean_lc_df_current.drop(columns=['loan_status'])
-    y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['prob_default'])
-    X_current.drop(columns=['title'],inplace=True) 
+    X_browse = clean_lc_df_browse
+    y_browse = pd.DataFrame(np.nan, index=clean_lc_df_browse.index, columns=['prob_default'])
+    #X_browse.drop(columns=['title'],inplace=True) 
     # CALL IMPUTE FUNCTION on X_current
-    X_current = impute_means_zeros_maxs_X(X_current, nan_max_cols, nan_zero_cols, nan_mean_cols)
-    return X_current, y_current
+    X_browse = impute_means_zeros_maxs_X(X_browse, nan_max_cols, nan_zero_cols, nan_mean_cols)
+    return X_browse, y_browse
 
 ###### One Hot Encoding
 
@@ -370,32 +581,60 @@ def one_hot_encode_eval(X_train, X_test):
             ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test,
             ohe_sub_grade_test, ohe_emp_title_2_test)
     
-def one_hot_encode_current(X_current):
+# def one_hot_encode_current(X_current):
+#     '''One Hot Encoder for 6x categorical vars on X_train, transforming X_current'''
+#     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+#         X_train_pre_ohe_for_future_encoder[['home_ownership']])
+#     ohe_home_ownership = pd.DataFrame(encoder.transform(X_current[['home_ownership']]).toarray(),
+#                                       columns=encoder.get_feature_names(["home_ownership"]),index=X_current.index)
+#     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+#         X_train_pre_ohe_for_future_encoder[['purpose']])
+#     ohe_purpose = pd.DataFrame(encoder.transform(X_current[['purpose']]).toarray(),
+#                                columns=encoder.get_feature_names(["purpose"]),index=X_current.index)
+#     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+#         X_train_pre_ohe_for_future_encoder[['zip_code']])
+#     ohe_zip_code = pd.DataFrame(encoder.transform(X_current[['zip_code']]).toarray(),
+#                                 columns=encoder.get_feature_names(["zip_code"]),index=X_current.index)
+#     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+#         X_train_pre_ohe_for_future_encoder[['application_type']])
+#     ohe_application_type = pd.DataFrame(encoder.transform(X_current[['application_type']]).toarray(),
+#                                         columns=encoder.get_feature_names(["application_type"]),index=X_current.index)
+#     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+#         X_train_pre_ohe_for_future_encoder[['sub_grade']])
+#     ohe_sub_grade = pd.DataFrame(encoder.transform(X_current[['sub_grade']]).toarray(),
+#                                  columns=encoder.get_feature_names(["sub_grade"]),index=X_current.index)
+#     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
+#         X_train_pre_ohe_for_future_encoder[['emp_title_2']])
+#     ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_current[['emp_title_2']]).toarray(),
+#                                    columns=encoder.get_feature_names(["emp_title_2"]),index=X_current.index)
+#     return (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
+
+def one_hot_encode_browse(X_browse):
     '''One Hot Encoder for 6x categorical vars on X_train, transforming X_current'''
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['home_ownership']])
-    ohe_home_ownership = pd.DataFrame(encoder.transform(X_current[['home_ownership']]).toarray(),
-                                      columns=encoder.get_feature_names(["home_ownership"]),index=X_current.index)
+    ohe_home_ownership = pd.DataFrame(encoder.transform(X_browse[['home_ownership']]).toarray(),
+                                      columns=encoder.get_feature_names(["home_ownership"]),index=X_browse.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['purpose']])
-    ohe_purpose = pd.DataFrame(encoder.transform(X_current[['purpose']]).toarray(),
-                               columns=encoder.get_feature_names(["purpose"]),index=X_current.index)
+    ohe_purpose = pd.DataFrame(encoder.transform(X_browse[['purpose']]).toarray(),
+                               columns=encoder.get_feature_names(["purpose"]),index=X_browse.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['zip_code']])
-    ohe_zip_code = pd.DataFrame(encoder.transform(X_current[['zip_code']]).toarray(),
-                                columns=encoder.get_feature_names(["zip_code"]),index=X_current.index)
+    ohe_zip_code = pd.DataFrame(encoder.transform(X_browse[['zip_code']]).toarray(),
+                                columns=encoder.get_feature_names(["zip_code"]),index=X_browse.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['application_type']])
-    ohe_application_type = pd.DataFrame(encoder.transform(X_current[['application_type']]).toarray(),
-                                        columns=encoder.get_feature_names(["application_type"]),index=X_current.index)
+    ohe_application_type = pd.DataFrame(encoder.transform(X_browse[['application_type']]).toarray(),
+                                        columns=encoder.get_feature_names(["application_type"]),index=X_browse.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['sub_grade']])
-    ohe_sub_grade = pd.DataFrame(encoder.transform(X_current[['sub_grade']]).toarray(),
-                                 columns=encoder.get_feature_names(["sub_grade"]),index=X_current.index)
+    ohe_sub_grade = pd.DataFrame(encoder.transform(X_browse[['sub_grade']]).toarray(),
+                                 columns=encoder.get_feature_names(["sub_grade"]),index=X_browse.index)
     encoder = OneHotEncoder(categories='auto',handle_unknown='ignore').fit(
         X_train_pre_ohe_for_future_encoder[['emp_title_2']])
-    ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_current[['emp_title_2']]).toarray(),
-                                   columns=encoder.get_feature_names(["emp_title_2"]),index=X_current.index)
+    ohe_emp_title_2 = pd.DataFrame(encoder.transform(X_browse[['emp_title_2']]).toarray(),
+                                   columns=encoder.get_feature_names(["emp_title_2"]),index=X_browse.index)
     return (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
 
 def one_hot_encode_future(X_train, X_test):
@@ -460,11 +699,15 @@ def concat_X_and_6ohe_dfs(X, ohe_home_ownership, ohe_purpose, ohe_zip_code,
 ##### Classification Prep
 def prep_all_df_for_classification(X_all_df):
     '''drop OHE source columns & unuseful categorical variables'''
-    X_all_df.drop(columns=['term','verification_status',
-                           'grade','emp_title', 'addr_state',
+    X_all_df.drop(columns=['term','grade','emp_title', 'addr_state'],inplace=True)
                            #ALSO, drop redundant columns that new OHE columns provide the info for
-                           'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
-                           'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+                           #'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                           #'issue_d','last_pymnt_d','verification_status],inplace=True) #ALSO, drop date columns
+
+def prep_browse_for_classification(X_all_df):
+    '''drop OHE source columns & unuseful categorical variables'''
+    X_all_df.drop(columns=['term','grade','emp_title', 'addr_state'],inplace=True) #ALSO, drop date columns
+
 #call function pre-OHE
 prep_all_df_for_classification(X_train_pre_ohe_for_future_encoder)
 
@@ -556,7 +799,7 @@ def classification_model_eval_prep_pipeline(dfs_list):
             
 
 def regression_model_eval_prep_pipeline(dfs_list):
-    clean_lc_df_eval = clean_LC_data_classification_eval(dfs_list)
+    clean_lc_df_eval = clean_LC_data_regression_eval(dfs_list)
     X_train, X_test, y_train_classif, y_test_classif = preprocessing_eval(clean_lc_df_eval)
     (ohe_home_ownership, ohe_purpose, ohe_zip_code, ohe_application_type, ohe_sub_grade, ohe_emp_title_2,
     ohe_home_ownership_test, ohe_purpose_test, ohe_zip_code_test, ohe_application_type_test, 
@@ -604,6 +847,38 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     table_all_current = y_current.join(X_current_regr)
     table_all_current.drop(columns=['annu_return'],inplace=True)
     return (X_current_regr, y_current, table_all_current)
+
+def browse_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_string):
+    #CLASSIFICATION PIPELINE
+    clean_lc_df_browse = clean_new_LC_data_classification_browse(dfs_list)
+    X_browse, y_browse = preprocessing_browse(clean_lc_df_browse)
+    (ohe_home_ownership, ohe_purpose, ohe_zip_code, 
+     ohe_application_type, ohe_sub_grade, ohe_emp_title_2) = one_hot_encode_browse(X_browse)
+    X_browse_classif = concat_X_and_6ohe_dfs(X_browse, ohe_home_ownership, ohe_purpose, ohe_zip_code,
+                                             ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
+    X_browse_regr = concat_X_and_6ohe_dfs(X_browse, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
+                                          ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
+    prep_browse_for_classification(X_browse_classif) #drops columns in place
+    #Scaler
+    ss = StandardScaler()
+    X_browse_classif_s = ss.fit_transform(X_browse_classif)
+    #Joblib Load
+    class_model = joblib.load(class_model_joblib_string)
+    browse_class_s_preds_proba = class_model.predict_proba(X_browse_classif_s)
+    browse_prob_fullypaid = browse_class_s_preds_proba
+    browse_prob_default = 1-browse_class_s_preds_proba
+    y_browse['prob_fullypaid'] = browse_prob_fullypaid
+    y_browse['prob_default'] = browse_prob_default
+    #REGRESSION PIPELINE
+    y_browse_regr, y_browse = impute_annu_return_to_y(X_browse_regr,y_browse)
+    prep_df_for_regression_browse(X_browse_regr)
+    regr_model = joblib.load(regr_model_joblib_string)
+    browse_return_preds = regr_model.predict(X_browse_regr)
+    y_browse['return_preds'] = browse_return_preds
+    # Connecting
+    table_all_browse = y_browse.join(X_browse_regr)
+    table_all_browse.drop(columns=['annu_return'],inplace=True)
+    return (X_browse_regr, y_browse, table_all_browse)
 
 def show_recommendation_table(final_df):
     return rec_table

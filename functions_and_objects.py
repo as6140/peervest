@@ -601,8 +601,8 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     current_return_preds = regr_model.predict(X_current_regr)
     y_current['return_preds'] = current_return_preds
     # Connecting
-    #y_predictions.drop(columns=['annu_return'],inplace=True)
     table_all_current = y_current.join(X_current_regr)
+    table_all_current.drop(columns=['annu_return'],inplace=True)
     return (X_current_regr, y_current, table_all_current)
 
 def show_recommendation_table(final_df):

@@ -5,6 +5,80 @@ from sklearn.model_selection import train_test_split
 import math
 import joblib
 
+
+### objects for BROWSE/CURRENT RECOMMENDATIONS
+
+columns_list3 = ['loan_amnt', 'funded_amnt',#'total_pymnt',
+                'term', 'int_rate', #'installment',
+                'emp_length', 'home_ownership', 'annual_inc',
+                #'verification_status', 
+                #'loan_status',
+                'purpose', 'zip_code', 'addr_state', 'dti',
+                'delinq_2yrs', 'earliest_cr_line', 'fico_range_low',
+                'fico_range_high', 'inq_last_6mths', 'mths_since_last_delinq',
+                'mths_since_last_record', 'open_acc', 'pub_rec', 'revol_bal',
+                'revol_util', 'total_acc', #'out_prncp',
+                #'out_prncp_inv', 
+                #'last_fico_range_high', 'last_fico_range_low',
+                'collections_12_mths_ex_med', 'mths_since_last_major_derog',
+                #'policy_code', 
+                'application_type', #'annual_inc_joint', #'dti_joint',
+                'acc_now_delinq', 'tot_coll_amt',
+                #'tot_cur_bal', 
+                'open_acc_6m', #'open_act_il', 
+                #'open_il_12m',
+                #'open_il_24m', #'mths_since_rcnt_il', 
+                #'total_bal_il', 'il_util',
+                'open_rv_12m', 'open_rv_24m', 'all_util',
+                'total_rev_hi_lim', 'inq_fi', 'total_cu_tl', 'inq_last_12m',
+                'acc_open_past_24mths', #'avg_cur_bal', 
+                'bc_open_to_buy', 'bc_util',
+                'chargeoff_within_12_mths', 'delinq_amnt', 'mo_sin_old_il_acct',
+                'mo_sin_old_rev_tl_op', 'mo_sin_rcnt_rev_tl_op', #'mo_sin_rcnt_tl',
+                'mort_acc', 'mths_since_recent_bc', 'mths_since_recent_bc_dlq',
+                #'mths_since_recent_inq', 
+                'mths_since_recent_revol_delinq',
+                'num_accts_ever_120_pd', 'num_actv_bc_tl', 'num_actv_rev_tl',
+                'num_bc_sats', 'num_bc_tl', 'num_il_tl', 'num_op_rev_tl',
+                'num_rev_accts', 'num_rev_tl_bal_gt_0', 'num_sats',
+                'num_tl_120dpd_2m', 'num_tl_30dpd', 'num_tl_90g_dpd_24m',
+                'num_tl_op_past_12m', 'pct_tl_nvr_dlq', 'percent_bc_gt_75',
+                'pub_rec_bankruptcies', 'tax_liens', 'tot_hi_cred_lim',
+                'total_bal_ex_mort', 'total_bc_limit',
+                'total_il_high_credit_limit','grade', #'collection_recovery_fee', 
+                #'total_rec_prncp', 
+                #'title', #'total_rec_int', 'total_rec_late_fee', 
+                'sub_grade', #'debt_settlement_flag', 
+                'emp_title'] #'issue_d','last_pymnt_d']
+
+dtype2 = {
+      'loan_amnt': 'int64',
+      'term': 'object',
+      'int_rate': 'float64',
+      'emp_length': 'object',
+      'home_ownership': 'object',
+      'annual_inc': 'float64',
+      #'verification_status': 'object',
+      #'loan_status': 'object',
+      'purpose': 'object',
+      'zip_code': 'object',
+      'addr_state': 'object',
+      'dti': 'float64',
+      'delinq_2yrs': 'int64',
+      'fico_range_low': 'int64',
+      'fico_range_high': 'int64',
+      'inq_last_6mths': 'int64',
+      'open_acc': 'int64',
+      'pub_rec': 'int64',
+      'revol_bal': 'int64',
+      'total_acc': 'int64',
+      'application_type': 'object'
+}
+
+
+
+### objects for TRAINING & EVALUATION
+
 columns_list2 = ['loan_amnt', 'funded_amnt','total_pymnt',
                 'term', 'int_rate', #'installment',
                 'emp_length', 'home_ownership', 'annual_inc',
@@ -338,9 +412,9 @@ def clean_new_LC_data_classification_current(dfs_list):
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage_browse)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage_browse)
-    lc_df = raw_lc_df[columns_list2]
+    lc_df = raw_lc_df[columns_list3]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
-    lc_df = lc_df.astype(dtype=dtype)
+    lc_df = lc_df.astype(dtype=dtype2)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
     lc_df.loc[lc_df['emp_length'] == '10+ years', 'emp_length'] = '10'
     lc_df['emp_length'] = lc_df['emp_length'].str[:1]
@@ -387,9 +461,8 @@ def preprocessing_future_test(clean_lc_df_future):
 
 def preprocessing_current(clean_lc_df_current):
     '''Initiate X & Y and impute missing values for Current loans'''
-    X_current = clean_lc_df_current.drop(columns=['loan_status'])
-    y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['prob_default'])
-    X_current.drop(columns=['title'],inplace=True) 
+    X_current = clean_lc_df_current
+    y_current = pd.DataFrame(np.nan, index=clean_lc_df_current.index, columns=['prob_default']) 
     # CALL IMPUTE FUNCTION on X_current
     X_current = impute_means_zeros_maxs_X(X_current, nan_max_cols, nan_zero_cols, nan_mean_cols)
     return X_current, y_current
@@ -530,8 +603,17 @@ def prep_all_df_for_classification(X_all_df):
                            #ALSO, drop redundant columns that new OHE columns provide the info for
                            'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
                            'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+    
+def prep_all_df_for_classification_current(X_all_df):
+    '''drop OHE source columns & unuseful categorical variables'''
+    X_all_df.drop(columns=['term',#'verification_status',
+                           'grade','emp_title', 'addr_state'],inplace=True)
+                           #ALSO, drop redundant columns that new OHE columns provide the info for
+                           #'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                           #'issue_d','last_pymnt_d'] #ALSO, drop date columns
 #call function pre-OHE
 prep_all_df_for_classification(X_train_pre_ohe_for_future_encoder)
+
 
 
 ##### Regression Prep
@@ -600,6 +682,20 @@ def classification_model_eval_prep_pipeline(dfs_list):
                                            ohe_application_type_test, ohe_sub_grade_test, ohe_emp_title_2_test)
     prep_all_df_for_classification(X_train_classif)#drops columns in place
     prep_all_df_for_classification(X_test_classif)#drops columns in place
+    X_train_classif.drop(columns=['total_pymnt'],inplace=True)
+    X_test_classif.drop(columns=['total_pymnt'],inplace=True)
+    X_train_classif.drop(columns=['collection_recovery_fee'],inplace=True)
+    X_test_classif.drop(columns=['collection_recovery_fee'],inplace=True)
+    X_train_classif.drop(columns=['last_fico_range_high'],inplace=True)
+    X_test_classif.drop(columns=['last_fico_range_high'],inplace=True)
+    X_train_classif.drop(columns=['last_fico_range_low'],inplace=True)
+    X_test_classif.drop(columns=['last_fico_range_low'],inplace=True)
+    X_train_classif.drop(columns=['policy_code'],inplace=True)
+    X_test_classif.drop(columns=['policy_code'],inplace=True)
+    X_train_classif.drop(columns=['annual_inc_joint'],inplace=True)
+    X_test_classif.drop(columns=['annual_inc_joint'],inplace=True)
+    X_train_classif.drop(columns=['dti_joint'],inplace=True)
+    X_test_classif.drop(columns=['dti_joint'],inplace=True)
     return (X_train_classif, X_test_classif, y_train_classif, y_test_classif) 
 
 #     #combine train & test datasets for FUTURE analysis (all future data is a test set)
@@ -635,6 +731,20 @@ def regression_model_eval_prep_pipeline(dfs_list):
     y_test_regr, y_test = impute_annu_return_to_y(X_test_regr,y_test_classif)
     prep_df_for_regression_eval(X_train_regr,X_test_regr) #drops columns in place
     #X_train_regr_scaled, X_test_regr_scaled = scale_eval(X_train_regr,X_test_regr)
+    X_train_regr.drop(columns=['total_pymnt'],inplace=True)
+    X_test_regr.drop(columns=['total_pymnt'],inplace=True)
+    X_train_regr.drop(columns=['collection_recovery_fee'],inplace=True)
+    X_test_regr.drop(columns=['collection_recovery_fee'],inplace=True)
+    X_train_regr.drop(columns=['last_fico_range_high'],inplace=True)
+    X_test_regr.drop(columns=['last_fico_range_high'],inplace=True)
+    X_train_regr.drop(columns=['last_fico_range_low'],inplace=True)
+    X_test_regr.drop(columns=['last_fico_range_low'],inplace=True)
+    X_train_regr.drop(columns=['policy_code'],inplace=True)
+    X_test_regr.drop(columns=['policy_code'],inplace=True)
+    X_train_regr.drop(columns=['annual_inc_joint'],inplace=True)
+    X_test_regr.drop(columns=['annual_inc_joint'],inplace=True)
+    X_train_regr.drop(columns=['dti_joint'],inplace=True)
+    X_test_regr.drop(columns=['dti_joint'],inplace=True)
     return (X_train_regr, X_test_regr, y_train_regr, y_test_regr)
 
 def clean_browseNotes(browseNotes):
@@ -700,12 +810,12 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
                                           ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     X_current_regr = concat_X_and_6ohe_dfs(X_current, ohe_home_ownership, ohe_purpose, ohe_zip_code, 
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
-    prep_all_df_for_classification(X_current_classif) #drops columns in place
-    X_current_classif.drop(columns=['total_pymnt'],inplace=True)
-    X_current_classif['last_fico_range_high'].fillna(X_current_classif['fico_range_high'],inplace=True)
-    X_current_classif['last_fico_range_low'].fillna(X_current_classif['fico_range_low'],inplace=True)
-    X_current_classif['policy_code'].fillna(1,inplace=True)
-    X_current_classif['collection_recovery_fee'].fillna(0,inplace=True)
+    prep_all_df_for_classification_current(X_current_classif) #drops columns in place
+    #X_current_classif.drop(columns=['total_pymnt'],inplace=True)
+    #X_current_classif['last_fico_range_high'].fillna(X_current_classif['fico_range_high'],inplace=True)
+    #X_current_classif['last_fico_range_low'].fillna(X_current_classif['fico_range_low'],inplace=True)
+    #X_current_classif['policy_code'].fillna(1,inplace=True)
+    #X_current_classif['collection_recovery_fee'].fillna(0,inplace=True)
     print(X_current_classif.columns[X_current_classif.isna().all()].tolist())
     #Scaler
     ss = StandardScaler()

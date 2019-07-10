@@ -14,8 +14,4 @@ def output():
     data = request.get_json(force=True)
     # every time the user_input identifier
     print(data)
-    #multiply input by 20
-    output = float(data["text_box"]) * 20
-    #print contents of output to terminal
-    print(output)
-    return jsonify(output)
+    return jsonify(data)

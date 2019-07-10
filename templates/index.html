@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>First Flask app</title>
+    <title>PeerVest</title>
     <!--both brython.js and brython_stdlib.js files live in the static/ dir-->
     <script type="text/javascript" src="brython.js"></script>
     <script type="text/javascript" src="brython_stdlib.js"></script>
@@ -32,14 +32,24 @@
           req.bind("complete", show_results)
           req.open("POST", "/output", True)
           req.set_header("content-type","application/json")
-          data = json.dumps({"text_box": document["user_input"].value})
+          data = json.dumps({"min_return": document["min_return"].value,
+                            "max_prob_default": document["max_prob_default"].value,
+                            "avail_funds": document["avail_funds"].value})
           req.send(data)
 
 
       document["click_button"].bind("click", get_output)
     </script>
-    <textarea id="user_input"></textarea>
-    <button id="click_button">Click here</button>
+    <label for="min_return">Minimum Desired Annualized Return (0-1)</label>
+    <textarea id="min_return"></textarea>
+    <br></br>
+    <label for="max_prob_default">Maximum Probability of Default (0-1)</label>
+    <textarea id="max_prob_default"></textarea>
+    <br></br>
+    <label for="avail_funds">Available Funds to Invest $</label>
+    <textarea id="avail_funds"></textarea>
+    <br></br>
+    <button id="click_button">Submit</button>
     <br></br>
     <h1>User Output</h1>
     <!--try replacing yellow with div to remove the yellow styling-->

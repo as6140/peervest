@@ -409,10 +409,11 @@ def clean_new_LC_data_classification_current(dfs_list):
     #raw_lc_df = raw_lc_df.loc[raw_lc_df['loan_status'] == 'Current',:]
     #raw_lc_df.drop(columns=['loan_status'], inplace=True)
     ###
+    clean_browseNotes(raw_lc_df)
     raw_lc_df['earliest_cr_line'] = pd.to_timedelta(pd.to_datetime(raw_lc_df['earliest_cr_line'])).dt.days
     raw_lc_df['revol_util'] = raw_lc_df['revol_util'].apply(parse_percentage_browse)
     raw_lc_df['int_rate'] = raw_lc_df['int_rate'].apply(parse_percentage_browse)
-    lc_df = raw_lc_df[columns_list3]
+    lc_df = raw_lc_df[columns_list2]
     lc_df = lc_df.dropna(axis=0, subset=['loan_amnt','inq_last_6mths'])
     lc_df = lc_df.astype(dtype=dtype2)
     lc_df.loc[lc_df['emp_length'] == '< 1 year','emp_length'] = '0'
@@ -606,11 +607,11 @@ def prep_all_df_for_classification(X_all_df):
     
 def prep_all_df_for_classification_current(X_all_df):
     '''drop OHE source columns & unuseful categorical variables'''
-    X_all_df.drop(columns=['term',#'verification_status',
-                           'grade','emp_title', 'addr_state'],inplace=True)
+    X_all_df.drop(columns=['term','verification_status',
+                           'grade','emp_title', 'addr_state',
                            #ALSO, drop redundant columns that new OHE columns provide the info for
-                           #'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
-                           #'issue_d','last_pymnt_d'] #ALSO, drop date columns
+                           'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
+                           'issue_d','last_pymnt_d','loan_status','title','total_pymnt'],inplace=True) #ALSO, drop date columns
 #call function pre-OHE
 prep_all_df_for_classification(X_train_pre_ohe_for_future_encoder)
 
@@ -637,7 +638,7 @@ def prep_df_for_regression_current(X_all_df):
                            'grade','emp_title', 'addr_state',
                            #ALSO, drop redundant columns that new OHE columns provide the info for
                            'debt_settlement_flag',#ALSO, drop columns clearly not predictive of class
-                           'issue_d','last_pymnt_d'],inplace=True) #ALSO, drop date columns
+                           'issue_d','last_pymnt_d','loan_status','title','total_pymnt'],inplace=True) #ALSO, drop date columns
 
 def prep_df_for_regression_eval(X_train_all,X_test_all):
     '''drop OHE source columns & unuseful categorical variables'''
@@ -812,10 +813,10 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
                                        ohe_application_type, ohe_sub_grade, ohe_emp_title_2)
     prep_all_df_for_classification_current(X_current_classif) #drops columns in place
     #X_current_classif.drop(columns=['total_pymnt'],inplace=True)
-    #X_current_classif['last_fico_range_high'].fillna(X_current_classif['fico_range_high'],inplace=True)
-    #X_current_classif['last_fico_range_low'].fillna(X_current_classif['fico_range_low'],inplace=True)
-    #X_current_classif['policy_code'].fillna(1,inplace=True)
-    #X_current_classif['collection_recovery_fee'].fillna(0,inplace=True)
+    X_current_classif['last_fico_range_high'].fillna(X_current_classif['fico_range_high'],inplace=True)
+    X_current_classif['last_fico_range_low'].fillna(X_current_classif['fico_range_low'],inplace=True)
+    X_current_classif['policy_code'].fillna(1,inplace=True)
+    X_current_classif['collection_recovery_fee'].fillna(0,inplace=True)
     print(X_current_classif.columns[X_current_classif.isna().all()].tolist())
     #Scaler
     ss = StandardScaler()
@@ -831,7 +832,7 @@ def current_pipeline(dfs_list, class_model_joblib_string, regr_model_joblib_stri
     y_current_regr, y_current = impute_annu_return_to_y(X_current_regr,y_current)
     prep_df_for_regression_current(X_current_regr)
     #NaN columns in browseNotes
-    X_current_regr.drop(columns=['total_pymnt'],inplace=True)
+    #X_current_regr.drop(columns=['total_pymnt'],inplace=True)
     X_current_regr['last_fico_range_high'].fillna(X_current_regr['fico_range_high'],inplace=True)
     X_current_regr['last_fico_range_low'].fillna(X_current_regr['fico_range_low'],inplace=True)
     X_current_regr['policy_code'].fillna(1,inplace=True)

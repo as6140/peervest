@@ -12,16 +12,31 @@
     }
   </style>
   <body onload="brython()">
-    <h1>User Input</h1>
+    <h1>Investor Preferences</h1>
     <script type="text/python3">
       from browser import document, ajax
       import json
       import warnings
+      
+      
+      def update_min_return_label(ev):
+        '''Update Slider Label as user makes changes'''
+        min_return_val = document["min_return"].value
+        document["min_return_label"].textContent = min_return_val
+
+      def update_max_prob_default_label(ev):
+        '''Update Slider Label as user makes changes'''
+        max_prob_val = document["max_prob_default"].value
+        document["max_prob_default_label"].textContent = max_prob_val
+      
+      document["min_return"].bind("change", update_min_return_label)
+      document["max_prob_default"].bind("change", update_max_prob_default_label)
+
 
       def show_results(response):
           """Show HTML page"""
           if response.status==200 or response.status==0:
-              document["result"].html = response.text
+            document["result"].html = response.text
           else:
               warnings.warn(response.text)
 
@@ -40,18 +55,27 @@
 
       document["click_button"].bind("click", get_output)
     </script>
-    <label for="min_return">Minimum Desired Annualized Return (0-1)</label>
-    <textarea id="min_return"></textarea>
+    <label for="min_return">Minimum Desired Annualized Return (1%-30%)</label>
+    <div class="slidecontainer">
+        <input type="range" min="1" max="25" step="1" value="10" id="min_return" class="slider"/>
+        <span id="min_return_label">10</span><span>%</span>
+    </div>
+
     <br></br>
-    <label for="max_prob_default">Maximum Probability of Default (0-1)</label>
-    <textarea id="max_prob_default"></textarea>
+    <label for="max_prob_default">Maximum Probability of Default (0%-99%)</label>
+    <div class="slidecontainer">
+        <input type="range" min="1" max="99" step="1" value="50" id="max_prob_default" class="slider"/>
+        <span id="max_prob_default_label">50</span><span>%</span>
+    </div>
+
     <br></br>
     <label for="avail_funds">Available Funds to Invest $</label>
+    <br></br>
     <textarea id="avail_funds"></textarea>
     <br></br>
     <button id="click_button">Submit</button>
     <br></br>
-    <h1>User Output</h1>
+    <h1>Portfolio Summary & Recommended Loans </h1>
     <!--try replacing yellow with div to remove the yellow styling-->
     <yellow id="result"></yellow>
   </body>

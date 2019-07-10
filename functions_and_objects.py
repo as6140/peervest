@@ -1,4 +1,5 @@
 import pandas as pd
+import pickle
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split

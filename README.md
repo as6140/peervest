@@ -1,39 +1,66 @@
 # PeerVest
+(http://www.peervest.online)
+**A P2P Lending Robo-Advisor**
 
-**Recommending Investments Across P2P Lending Marketplaces**
 *Alex Shropshire*
 
 ### Business Understanding
-I am looking to help people augment their investment portfolio by allocating funds to Peer-to-Peer Lending Marketplaces. I have yet to invest my own money in P2P debt instruments yet, and I don’t necessarily trust the credit risk assessments provided off-the-shelf by LendingClub and Prosper Marketplace. I would like to create an application that will enable me to recommend the best loans to invest in each of these marketplaces given a user’s available funds and risk tolerance, gathered from inputs on a desktop app with mobile capability.
+PeerVest helps investors augment their portfolio by intelligently allocating funds to Peer-to-Peer Lending Marketplaces using machine learning to assess risk and predict return, starting with pools of investable loans on LendingClub.com. LendingClub is incentivized to increase marketplace transactions. Driven by ease-of-us, their off-the-shelf credit risk assessments score risk in grouped buckets. On a loan-by-loan basis, this is inefficient given each loan's uniqueness and the sheer amount of data collected. PeerVest recommends the best loans to invest in given a user’s available funds, maximum risk tolerance, and minimum desired annualized return.
 
 ### Data Understanding
-I will connect to the LendingClub & Prosper Marketplace Investor APIs to gather a large number of loans available for investment. I will use historical data to ensure I am including enough loans that are labeled as either fully paid and defaulted/charged-off. I will explore how to incorporate new listings into my recommendation output as they appear on the site. I will anonymize the loan IDs and other potentially sensitive or data to comply with API guidelines, while citing my sources.
+This technology is being built utlizing publicly available data downloads provided by LendingClub, and going forward I will explore making it dynamic through time utilizing LendingClub & Prosper Marketplace Investor APIs to collect and analyze the large number of loans available for investment on the platforms. Using 1,107 individual loan characteristics and about 1 million samples from 2007-2017, the historical data provided is rich, perfect for machine learning models. I used a Google Cloud NVIDIA Tesla GPU to train most of my models given the size of my data and computational expense of rapidly iterating through many complex models. I use 2018-Q12019 data to assess my models on future data to ensure it can be used confidently with completely new, investable loan listings.
 
 ### Data Preparation
-My goal is to utilize all completed loan results (for training) and all current loan listings in need of additional funding (for predicting profit and recommending investments). Completed loans are already labeled as “fully paid” or “defaulted/charged off” based on how the repayment process played out. Current/Active loans are labeled as “current” if they have begun paying off the loan, and “still being funded” if they are still looking for additional investment. I'll be connecting to the Investor APIs for each site. Each site also releases comprehensive CSV files should the API connection cause me trouble, which I will need to manually update as new CSVs are released. Each site provides >50 features describing the credit history and characteristics of the anonymous borrower, which may need to be reduced given possible redundancy. Most loans (~85-90%) end up getting paid in full, so there will be also a class imbalance problem to deal with in training
+I utilized all available completed loan results for training models and all current loan listings in need of additional funding in order to recommend investments. Completed loans are already labeled as “Fully Paid” or “Defaulted/Charged Off” based on how the repayment process played out. Current/Active loans are labeled as “current” if they have begun paying off the loan, while data downloaded as "browseNotes" if the loans are still being funded. Despite using CSVs for training, potential investments in partially funded loans can be sourced through an Investor API, or a browseNotes CSV can be downloaded after creating a LendingClub.com account and viewing available investments. There is a class imbalance problem to deal with in training as most loans underwritten by these platforms (~80%) end up getting paid off in full. Additionally, a truly diverse portfolio recommendation would spread funds out among many different loans, but the number of loans looking for investment at any given time varies, and can often be less than 100. Despite in depth analysis of risk and return, a truly well-diversified portfolio would ideally have > 100 loans included.
 
 ### Modeling
-**Model 1 (Probability of Default Filter)**: Classification: Logistic Regression, Decision Tree, Random Forests(sklearn), Gradient Boosting(XGBoost) --- linear programming, Bayesian models, Markov model, neural network, support vector machine, nearest neighbor methods --- Bagging, boosting and stacking
-- credit risk models with especially low false negative (type II) errors are desired, since false negative prediction will lead to loss.
-- depends not only on the borrower's characteristics but also on the economic environment (https://www.investopedia.com/terms/d/defaultprobability.asp), (https://www.youtube.com/watch?v=KHGGlozsRtA),
-https://www.youtube.com/watch?v=KVTj7RIqGsQ)
-- All “current” loans will receive a predicted probability of default
-- I must decide on a decision threshold that makes sense based on a loan’s probability of default
-- Loans that have a probability of default > my threshold will not be passed on to Model #2
+**Model 1: Classification (Probability of Default (=0) - Fully Paid (=1))**
+The main goal was to accurately measure risk on a continuous scale to give more granular context than LendingClub and sites like them provide off-the-shelf. Binary Classification seems to serve this purpose well. Naturally, I tried Logistic Regression. This performed well in many traditional classification metrics, and became really confident in it's assessment of class 0 vs. class 1 decision. To achieve that continuous scale though, I care moree about the probability of a loan defaulting vs. probability of a loan being fully paid off. Logistic Regression, despite being calibrated, didn't interact well with the .predict_proba() function. Given 1,107 unique features, there seemed to exist many non-linear relationships and the effort of manually reducing dimensions would be cumbersome. There was no true benefit to using Principal Component Analysis as it was not improving the situation - it reduced dimensionality and reduced explained variance in lockstep. I decided to keep all the features, despite the increased likelihood of feature redundancy. Knowing neural networks would be able to handle this complexity over many epochs of training, I began architecting a model using Keras, a NN library built on TensorFlow. I iterated through many different Keras architectures by employing different combinations of hidden layer sizes, dropout regularization, L2 kernel regularization, early stopping, epochs, class weight balancing, and ReLU/Sigmoid activation functions. Despite some stagnation in validation loss, the model eventually broke through and began improving more significantly within a few epochs, for both train and test sets, while calibrating prediction probabilities very well.
 
-**Model 2: (Profit/XIRR Prediction)**: Linear Regression(sklearn,statsmodels), Regression Neural Network/Perceptron (Keras), alternatives?
-Of the loans that I predict will NOT default, I will calculate an “effective return” (https://www.lendacademy.com/different-ways-to-calculate-p2p-lending-returns/)
+Underperformers: 3 Scikit-Learn Logistic Regression models, 7 Keras Neural Networks
+Best Performer: Keras Neural Network v8
 
+**Model 2: Regression (Annualized Return)**
+I used a very simply Annualized Return calculation based on the available data from LendingClub which essentially takes a fraction of Total Payment over Funded Amount, and annualizes by raising that term to the power of 365 divided by the number of days between the last borrower payment and loan issue date plus 30, then taking everything minus 1. I decided against using LendingClub's complicated Adjusted Net Annualized Return computation due to interpretability, though as I continue iterating my model I am open to refined calculations that utilize more traditional financial loss estimates. The element of time as it relates to loan terms and payments sits within this calculation. Macro information like the federal interest rate, inflation and the time value of money is inherent in the interest rate quoted to the borrower, though there is certainly room to dive into time series and survival analysis with increased rigor to productionalize this model for financial institutions. 
+
+Linear Regression worked decently on the training set, but was overfit and did not generalize well to the future set or the test set within the same period. Ridge Regression, which is similar but applied L2 regularization fixed the overfitting issue in my 2nd iteration. That said, I wanted to know if my evaluation metrics would improve using something that could make regression decisions in a different way, and if there was a model that wouldn't be as reliant on total payment so that my prediction could be used for brand new listing on LendingClub without payment history. Random Forest was the perfect candidate given the overfitting problem and its proven ability to bootstrap subsamples of features and aggregate many decision trees. In simple terms, a Random Forest would be able to construct and combine many not-so-good models that are not correlated with each other to create a single, decent mode - all while being equipped to handle my 1,107 features without much additional preparation besides finding the best parameters, which, given the power of a Google Cloud GPU, I let GridSearchCV handle by searching for the best combination.
+
+Underperformers: 1 Linear Regression model, 3 Ridge Regression Model, 4 Random Forest Regression models (using Scikit-Learn)
+Best Performer: Random Forest Regression v5 with GridSearch Cross-Validation
 
 ### Evaluation
-**Model 1**: Accuracy, Recall, Precision, F1, ROC, AUC, Confusion Matrix (K-S curve?) (https://www.machinelearningplus.com/machine-learning/evaluation-metrics-classification-models-r/)
-**Model 2**: R-squared & Root Mean Squared Error (+MSE), plot loss function per epoch
+**Model 1: Classification (Probability of Default (=0) - Fully Paid (=1) )**: 
+Parameters:
+![Screenshot](keras_model_params.png)
+Evaluation Metrics (Test Error):
+- Precision Fully Paid: 0.943
+- Recall Fully Paid: 0.979
+- F-1 Score Fully Paid: 0.961
+- ROC-AUC Score: 0.86
+- Prediction Probabilities calibrated
+
+**Model 2: Regression (Annualized Return)**
+Parameters: 
+- n_estimators = 100
+- max_depth: 15 
+- min_samples_leaf: 4
+- min_samples_split: 2
+Evaluation Metrics (Test Error - not including payment history):
+- R-Squared: 0.56
+- Mean Squared Error: 0.02
+- Root Mean Squared Error: 0.16
+But, we can become much more confident in our prediction if we know something about the borrowers' payment history:
+Evaluation Metrics (Test Error - if payment history is included):
+- R-Squared: 0.97
+- Mean Squared Error: 0.001
+- Root Mean Squared Error: 0.04
 
 ### Deployment
-The model will be deployed as a Flask app that can be used to collect a user’s risk tolerance and corresponding predicted return desire, and output a comprehensive list of loans/loan IDs for each platform that the person should craft their P2P portfolio from (https://flask-table.readthedocs.io/en/stable/).
-**User Stories**:
-- As a user, I want to see a list of recommended loans so that I know which loans to invest in.
-- As a user, I want to understand my projected reward given my risk tolerance.
+(http://www.peervest.online)
+
+The model has been deployed on the web as a Flask app hosted on an Amazon Web Services EC2 instance, utilizing HTML, CSS, and Brython. It can collect a user’s maximum risk tolerance and their corresponding minimum desired portfolio return, and output a comprehensive list of loans currently live on LendingClub.com based on my model's recommendation.
+
+**Future App Work - User Stories**
 - As a user, I want to know if the app recommendations will make me more money than the off-the-shelf LendingClub/Prosper recommendations.
 - As a user, I want all news listings to be featured in the recommendation set so that my investment decision is based on recent updates.
 - As a user, I want to be able to filter by loan purpose so that I can curate a mission-driven loan set.

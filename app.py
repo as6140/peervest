@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, jsonify
 import pandas as pd
 import pickle
-from functions_and_objects import (expected_portfolio_return_evenly_weighted, rank_table_by_shrop_ratio_RAR, 
+from app_functions import (expected_portfolio_return_evenly_weighted, rank_table_by_shrop_ratio_RAR, 
                                 recommended_loans_ranked_by_shrop_RAR,portfolio_prob_default_evenly_weighted, 
                                 portfolio_shrop_ratio_evenly_weighted, summarize_recommendation)
 

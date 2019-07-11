@@ -36,7 +36,7 @@
             data=json.loads(response.text)
             document["result"].html = data['html']
             document["download_link"].html = f"""
-            <a href="{data['filename']}">Download CSV</a>"""
+            <a href="port_downloads/{data['filename']}">Download CSV</a>"""
           else:
               warnings.warn(response.text)
 

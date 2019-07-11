@@ -9,7 +9,7 @@ PeerVest helps investors augment their portfolio by intelligently allocating fun
 ### Data Understanding  
 This technology is being built utlizing publicly available data downloads provided by LendingClub, and going forward I will explore making it dynamic through time utilizing LendingClub & Prosper Marketplace Investor APIs to collect and analyze the large number of loans available for investment on the platforms. Using 1,107 individual loan characteristics and about 1 million samples from 2007-2017, the historical data provided is rich, perfect for machine learning models. I used a Google Cloud NVIDIA Tesla GPU to train most of my models given the size of my data and computational expense of rapidly iterating through many complex models. I use 2018-Q12019 data to assess my models on future data to ensure it can be used confidently with completely new, investable loan listings.
   
-**Download CSVs used in training**: (https://www.lendingclub.com/info/download-data.action) . 
+**Download CSVs used in training**: (https://www.lendingclub.com/info/download-data.action)    
 **Create LendingClub Account to invest in recommended loans**: (https://www.lendingclub.com/lenderg/createaccount)
   
 ### Data Preparation  

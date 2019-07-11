@@ -6,11 +6,7 @@
     <script type="text/javascript" src="brython_stdlib.js"></script>
   </head>
   <!--adding custom style tag called yellow-->
-  <style>
-    yellow {
-      background-color: yellow
-    }
-  </style>
+  
   <body onload="brython()">
     <h1>Investor Preferences</h1>
     <script type="text/python3">
@@ -35,8 +31,11 @@
 
       def show_results(response):
           """Show HTML page"""
-          if response.status==200 or response.status==0:
-            document["result"].html = response.text
+          if response.status==200:
+            data=json.loads(response.text)
+            document["result"].html = data['html']
+            document["download_link"].html = f"""
+            <a href="{data['filename']}">Download CSV</a>"""
           else:
               warnings.warn(response.text)
 
@@ -76,7 +75,8 @@
     <button id="click_button">Submit</button>
     <br></br>
     <h1>Portfolio Summary & Recommended Loans </h1>
+    <div id="download_link"></div>
     <!--try replacing yellow with div to remove the yellow styling-->
-    <yellow id="result"></yellow>
+    <div id="result"></div>
   </body>
 </html>

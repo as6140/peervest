@@ -4,6 +4,7 @@ import pickle
 from app_functions import (expected_portfolio_return_evenly_weighted, rank_table_by_shrop_ratio_RAR, 
                                 recommended_loans_ranked_by_shrop_RAR,portfolio_prob_default_evenly_weighted, 
                                 portfolio_shrop_ratio_evenly_weighted, summarize_recommendation)
+import uuid
 
 app = Flask(__name__, static_url_path="")
 table_all_current = pd.read_pickle('table_all_current.pkl')
@@ -39,7 +40,9 @@ def output():
     html += f'<div>Portfolio Weighted Average Shrop Ratio: {port_shrop_ratio}</div>'
     html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div>'
     html += tabl.to_html(index=False)
-    return html
+    filename = f'portfolio_{uuid.uuid4()}.csv'
+    tabl.to_csv(f'static/{filename}')
+    return jsonify({'html': html, 'filename': filename})
 
 def store_user_inputs(data):
     scores = data.values()

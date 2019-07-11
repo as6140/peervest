@@ -32,6 +32,8 @@ def output():
     #customize columns
     tabl = rec_table_ranked[['shrop_ratio','prob_default','return_preds',
     'loan_amnt','funded_amnt','int_rate','fico_range_low','fico_range_high']].iloc[:10,:]
+    full_table = rec_table_ranked[['shrop_ratio','prob_default','return_preds',
+    'loan_amnt','funded_amnt','int_rate','fico_range_low','fico_range_high']]
 
     html = f'<div># of Investable Loans: {len(table_all_current)}</div>'
     html += f'<div># of Loans That Fit Your Preferences: {len(rec_table_ranked)}</div>'
@@ -41,7 +43,7 @@ def output():
     html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div>'
     html += tabl.to_html(index=False)
     filename = f'portfolio_{uuid.uuid4()}.csv'
-    tabl.to_csv(f'static/{filename}')
+    full_table.to_csv(f'static/port_downloads/{filename}')
     return jsonify({'html': html, 'filename': filename})
 
 def store_user_inputs(data):

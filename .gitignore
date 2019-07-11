@@ -1,3 +1,25 @@
+#ignore mac file unnecessary
+.DS_Store
+
+# Keep these local files, but I don't want them on GitHub
+model_joblibs/lin_reg_v1.joblib
+model_joblibs/log_reg_v1.joblib
+model_joblibs/log_reg_v2.joblib
+model_joblibs/nn_v1.joblib
+model_joblibs/nn_v2.joblib
+model_joblibs/nn_v3.joblib
+model_joblibs/nn_v4.joblib
+model_joblibs/nn_v5.joblib
+model_joblibs/nn_v6.joblib
+model_joblibs/nn_v7.joblib
+model_joblibs/rf_regr_v1.joblib
+model_joblibs/rf_regr_v2.joblib
+model_joblibs/rf_regr_v3.joblib
+model_joblibs/rf_regr_v4.joblib
+model_joblibs/ridge_lin_reg_v1.joblib
+model_joblibs/ridge_lin_reg_v2.joblib
+model_joblibs/ridge_lin_reg_v3.joblib
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

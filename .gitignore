@@ -19,6 +19,12 @@ model_joblibs/rf_regr_v4.joblib
 model_joblibs/ridge_lin_reg_v1.joblib
 model_joblibs/ridge_lin_reg_v2.joblib
 model_joblibs/ridge_lin_reg_v3.joblib
+lc_lin_reg_&_ridge_reg_v1.ipynb
+lc_log_reg_v1.ipynb
+lc_log_reg_v2.ipynb
+lc_nn_reg_v1.ipynb
+lc_ridge_reg_v2_v3.ipynb
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

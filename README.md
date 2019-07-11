@@ -25,7 +25,7 @@ I used a very simply Annualized Return calculation based on the available data f
 
 Linear Regression worked decently on the training set, but was overfit and did not generalize well to the future set or the test set within the same period. Ridge Regression, which is similar but applied L2 regularization fixed the overfitting issue in my 2nd iteration. That said, I wanted to know if my evaluation metrics would improve using something that could make regression decisions in a different way, and if there was a model that wouldn't be as reliant on total payment so that my prediction could be used for brand new listing on LendingClub without payment history. Random Forest was the perfect candidate given the overfitting problem and its proven ability to bootstrap subsamples of features and aggregate many decision trees. In simple terms, a Random Forest would be able to construct and combine many not-so-good models that are not correlated with each other to create a single, decent mode - all while being equipped to handle my 1,107 features without much additional preparation besides finding the best parameters, which, given the power of a Google Cloud GPU, I let GridSearchCV handle by searching for the best combination.
 
-Underperformers: 1 Linear Regression model, 3 Ridge Regression Model, 4 Random Forest Regression models (using Scikit-Learn)
+Underperformers: 1 Linear Regression model, 3 Ridge Regression Model, 1 Keras Neural Network, 4 Random Forest Regression models (using Scikit-Learn)
 Best Performer: Random Forest Regression v5 with GridSearch Cross-Validation
 
 ### Evaluation

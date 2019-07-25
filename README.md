@@ -1,3 +1,5 @@
+![peervest](http://www.peervest.online/img/peervest.png)
+
 # PeerVest
 (http://www.peervest.online)  
 **A P2P Lending Robo-Advisor**  

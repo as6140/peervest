@@ -1,4 +1,4 @@
-![peervest](http://www.peervest.online/img/peervest.png)
+![peervest](http://www.peervest.online/img/peervest.png)  
 (http://www.peervest.online)  
 **A P2P Lending Robo-Advisor**  
 *Alex Shropshire*
@@ -44,6 +44,7 @@ Dense Output Layer (1, Sigmoid, L2)
 - Early Stopping  
 - Class Weight Balancing  
 - Batch Size: 5000  
+
 **Evaluation Metrics (Test Error)**:  
 - Precision Fully Paid: 0.943  
 - Recall Fully Paid: 0.979  
@@ -56,12 +57,14 @@ Dense Output Layer (1, Sigmoid, L2)
 - n_estimators = 100  
 - max_depth: 15  
 - min_samples_leaf: 4  
-- min_samples_split: 2  
+- min_samples_split: 2
+
 **Evaluation Metrics (Test Error - not including payment history)**:
 - R-Squared: 0.56  
 - Mean Squared Error: 0.02  
 - Root Mean Squared Error: 0.16  
 But, we can become much more confident in our prediction if we know something about the borrowers' payment history:  
+
 **Evaluation Metrics (Test Error - if payment history is included)**:  
 - R-Squared: 0.97  
 - Mean Squared Error: 0.001  

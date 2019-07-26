@@ -76,11 +76,19 @@
     <br></br>
     <textarea id="avail_funds"></textarea>
     <br></br>
-    <button id="click_button">Submit</button>
+    <button id="click_button">Show My Recommended Loan Pool</button>
     <br></br>
     <h1>Portfolio Summary & Recommended Loans </h1>
     <div id="download_link"></div>
     <!--try replacing yellow with div to remove the yellow styling-->
     <div id="result"></div>
+    <dl>
+      <dt>Next Steps:</dt>
+      <dd>- Use Loan IDs in the downloaded CSV to guide your investments on LendingClub.com!</dd>
+      <dt>Optimal Diversification:</dt>
+      <dd>- There are often less than 100 available investments at any given time on LendingClub.com, though an optimized loan portfolio should contain at least 100 different loans to adequately reduce lack of diversification risk</dd>
+      <dt>Shrop Ratio:</dt>
+      <dd>- Similar to the more popular Sharpe Ratio, the Shrop Ratio uses my Probability of Default Neural Network in the denominator instead of the Sharpe Ratio's typical denominator, historical standard deviation. This figure is simply used to compare loans side-by-side on a risk-adjusted return basis. The higher the number, the better the investment according to my models.</dd>
+    </dl>
   </body>
 </html>

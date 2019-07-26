@@ -14,3 +14,11 @@ body {
     border-radius: 30px;
     background-color: "#f8f5fb";
 }
+
+dl {
+    text-align: left;
+}
+
+dt {
+    font-weight: bold;
+}

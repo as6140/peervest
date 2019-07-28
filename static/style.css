@@ -15,6 +15,11 @@ body {
     background-color: "#f8f5fb";
 }
 
+div.result {
+    margin: auto;
+    width: 50%;
+}
+
 dl {
     text-align: left;
 }

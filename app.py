@@ -29,17 +29,26 @@ def output():
     (rec_table_ranked,port_prob_def,port_exp_return,
     port_shrop_ratio,max_investable) = summarize_recommendation(table_all_current, max_prob_default_as_float, 
                                                                 min_return_as_float, float(data["avail_funds"]))
-    #customize columns
-    tabl = rec_table_ranked[['shrop_ratio','prob_default','return_preds',
-    'loan_amnt','funded_amnt','int_rate','fico_range_low','fico_range_high']].iloc[:10,:]
+    #choose CSV download columns
     full_table = rec_table_ranked[['shrop_ratio','prob_default','return_preds',
     'loan_amnt','funded_amnt','int_rate','fico_range_low','fico_range_high']]
+
+    #round decimals for printed table
+    rec_table_ranked['shrop_ratio'] = round(rec_table_ranked['shrop_ratio'],2)
+    rec_table_ranked['prob_default'] = round(rec_table_ranked['prob_default'],2)
+    rec_table_ranked['return_preds'] = round(rec_table_ranked['return preds'],2)
+    rec_table_ranked['loan_amnt'] = rec_table_ranked['loan_amnt'].applymap("${0:.2f}".format)
+    rec_table_ranked['funded_amnt'] = rec_table_ranked['funded_amnt'].applymap("${0:.2f}".format)
+
+    #choose which columns are returned in printed table
+    tabl = rec_table_ranked[['shrop_ratio','prob_default','return_preds',
+    'loan_amnt','funded_amnt','int_rate','fico_range_low','fico_range_high']].iloc[:10,:]
 
     html = f'<div># of Investable Loans: {len(table_all_current)}</div>'
     html += f'<div># of Loans That Fit Your Preferences: {len(rec_table_ranked)}</div>'
     html += f'<div>Portfolio Expected Return: {round(port_exp_return,2)*100}%</div>'
     html += f'<div>Portfolio Weighted Average Probability of Default: {round(port_prob_def,2)*100}%</div>'
-    html += f'<div>Portfolio Weighted Average Shrop Ratio: {port_shrop_ratio}</div>'
+    html += f'<div>Portfolio Weighted Average Shrop Ratio: {round(port_shrop_ratio,2)}</div>'
     html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div>'
     html += tabl.to_html(index=False)
     filename = f'portfolio_{uuid.uuid4()}.csv'

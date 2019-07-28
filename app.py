@@ -37,7 +37,7 @@ def output():
     rec_table_ranked['shrop_ratio'] = round(rec_table_ranked['shrop_ratio'],2)
     rec_table_ranked['prob_default'] = round(rec_table_ranked['prob_default'],3)
     rec_table_ranked['return_preds'] = round(rec_table_ranked['return preds'],3)
-    rec_table_ranked['loan_amnt'] = '$' + str(ec_table_ranked['loan_amnt'])
+    rec_table_ranked['loan_amnt'] = '$' + str(rec_table_ranked['loan_amnt'])
     rec_table_ranked['funded_amnt'] = '$' + str(round(rec_table_ranked['funded_amnt'],0))
 
     #choose which columns are returned in printed table

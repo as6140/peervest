@@ -36,9 +36,9 @@ def output():
     #round decimals for printed table
     rec_table_ranked['shrop_ratio'] = round(rec_table_ranked['shrop_ratio'],2)
     rec_table_ranked['prob_default'] = round(rec_table_ranked['prob_default'],2)
-    rec_table_ranked['return_preds'] = round(rec_table_ranked['return preds'],2)
-    rec_table_ranked['loan_amnt'] = rec_table_ranked['loan_amnt'].applymap("${0:.2f}".format)
-    rec_table_ranked['funded_amnt'] = rec_table_ranked['funded_amnt'].applymap("${0:.2f}".format)
+    # rec_table_ranked['return_preds'] = round(rec_table_ranked['return preds'],2)
+    # rec_table_ranked['loan_amnt'] = rec_table_ranked['loan_amnt'].applymap("${0:.2f}".format)
+    # rec_table_ranked['funded_amnt'] = rec_table_ranked['funded_amnt'].applymap("${0:.2f}".format)
 
     #choose which columns are returned in printed table
     tabl = rec_table_ranked[['shrop_ratio','prob_default','return_preds',

@@ -49,7 +49,7 @@ def output():
     html += f'<div>Portfolio Expected Return: {round(port_exp_return,2)*100}%</div>'
     html += f'<div>Portfolio Weighted Average Probability of Default: {round(port_prob_def,2)*100}%</div>'
     html += f'<div>Portfolio Weighted Average Shrop Ratio: {round(port_shrop_ratio,2)}</div>'
-    html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div>/div>'
+    html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div></div>'
     html += tabl.to_html(index=False)
     filename = f'portfolio_{uuid.uuid4()}.csv'
     full_table.to_csv(f'static/port_downloads/{filename}')

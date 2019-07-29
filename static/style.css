@@ -28,3 +28,27 @@ dl {
 dt {
     font-weight: bold;
 }
+
+div.investable_loans {
+    border-style: double;
+}
+
+div.recommended_loans {
+    border-style: double;
+}
+
+div.portfolio_exp_return {
+    border-style: double;
+}
+
+div.port_wa_pd {
+    border-style: double;
+}
+
+div.port_wa_shrop {
+    border-style: double;
+}
+
+div.max_possible_investment {
+    border-style: double;
+}

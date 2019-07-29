@@ -249,14 +249,14 @@ nan_mean_cols = [
     'bc_util',
     'pct_tl_nvr_dlq',
     'avg_cur_bal',
-    'revol_util',
+    'revol_util'
 ]
 
 str_to_float_cols = ['mths_since_last_delinq', 'mths_since_last_record', 
                      'bc_open_to_buy', 'mo_sin_old_il_acct', 
                      'mths_since_recent_bc', 'mths_since_recent_bc_dlq', 
                      'mths_since_recent_revol_delinq', 'num_tl_120dpd_2m', 
-                     'percent_bc_gt_75','annual_inc_joint', 'dti_joint']
+                     'percent_bc_gt_75','annual_inc_joint', 'dti_joint', 'all_util']
 
 ############ DATA CLEANING
 
@@ -289,13 +289,13 @@ def impute_means_zeros_maxs_X_train_X_test(X_train, X_test, nan_max_cols, nan_ze
 def impute_means_zeros_maxs_X(X, nan_max_cols, nan_zero_cols, nan_mean_cols):
     '''Impute means, zeros, and maxs in X given column list for each impute type'''
     for col in X:
-        dt = X[col].dtype
+        dtype = X[col].dtype
         if col in str_to_float_cols:
             X[col].replace(' ',np.nan,inplace=True)
             X[col] = X[col].astype('float64')
         #FILL MISSING WITH MEAN from X
         if col in nan_mean_cols:
-            X[col] = X[col].fillna(np.nanmean(X[col].values))
+            X[col] = X[col].fillna(X[col].mean(skipna=True))
         #FILL MISSING WITH ZEROS from X
         if col in nan_zero_cols:
             X[col] = X[col].fillna(0.0)
@@ -355,6 +355,7 @@ def parse_percentage(percentage):
 def parse_percentage_browse(percentage):
     '''Change percentage features into floats'''
     if str(percentage) == 'nan': return math.nan
+    if str(percentage) == ' ': return math.nan
     new = percentage
     return float(new) / 100.0
 
@@ -399,6 +400,8 @@ def clean_LC_data_classification_eval(dfs_list):
                                 'chargeoff_within_12_mths','last_pymnt_d'],axis=0)
 #     clean_lc_df['bc_util'].replace(' ',np.nan,inplace=True)
 #     clean_lc_df['bc_util'] = clean_lc_df['bc_util'].astype('float64')
+#     clean_lc_df_current['all_util'].replace(' ',np.nan,inplace=True)
+#     clean_lc_df_current['all_util'] = clean_lc_df_current['all_util'].astype('float64')
     return clean_lc_df
 
 
@@ -433,6 +436,8 @@ def clean_new_LC_data_classification_current(dfs_list):
                                         'chargeoff_within_12_mths'],axis=0) #'last_pymnt_d' nans dropped in training
     clean_lc_df_current['bc_util'].replace(' ',np.nan,inplace=True)
     clean_lc_df_current['bc_util'] = clean_lc_df_current['bc_util'].astype('float64')
+    clean_lc_df_current['all_util'].replace(' ',np.nan,inplace=True)
+    clean_lc_df_current['all_util'] = clean_lc_df_current['all_util'].astype('float64')
     return clean_lc_df_current
 
 ######### PREPROCESSING

@@ -7,7 +7,7 @@ from app_functions import (expected_portfolio_return_evenly_weighted, rank_table
 import uuid
 
 app = Flask(__name__, static_url_path="")
-table_all_current = pd.read_pickle('table_all_current.pkl')
+table_all_current = pd.read_pickle('table_all_current_7.29.19.pkl')
 
 
 @app.route("/")

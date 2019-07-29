@@ -44,12 +44,12 @@ def output():
     tabl = rec_table_ranked[['shrop_ratio','prob_default','return_preds',
     'loan_amnt','funded_amnt','int_rate','sub_grade', 'fico_range_low','fico_range_high']].iloc[:10,:]
 
-    html = f'<div id="summary_out"><div># of Investable Loans: {len(table_all_current)}</div>'
+    html = f'<div># of Investable Loans: {len(table_all_current)}</div>'
     html += f'<div># of Loans That Fit Your Preferences: {len(rec_table_ranked)}</div>'
     html += f'<div>Portfolio Expected Return: {round(port_exp_return,2)*100}%</div>'
     html += f'<div>Portfolio Weighted Average Probability of Default: {round(port_prob_def,2)*100}%</div>'
     html += f'<div>Portfolio Weighted Average Shrop Ratio: {round(port_shrop_ratio,2)}</div>'
-    html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div></div>'
+    html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div>'
     html += tabl.to_html(index=False)
     filename = f'portfolio_{uuid.uuid4()}.csv'
     full_table.to_csv(f'static/port_downloads/{filename}')

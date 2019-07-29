@@ -28,3 +28,7 @@ dl {
 dt {
     font-weight: bold;
 }
+
+div.summary_out {
+    border-style: double;
+}

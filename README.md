@@ -74,7 +74,21 @@ But, we can become much more confident in our prediction if we know something ab
 (http://www.peervest.online)
   
 The model has been deployed on the web as a Flask app hosted on an Amazon Web Services EC2 instance, utilizing HTML, CSS, and Brython. It can collect a user’s maximum risk tolerance and their corresponding minimum desired portfolio return, and output a comprehensive list of loans currently live on LendingClub.com based on my model's recommendation.
-  
+
+**Shrop Ratio**:  
+- Formula: Shrop Ratio = ( Portfolio Returns - Risk-Free Rate ) / Portfolio Dollar Weighted Average Probability of Default   
+- Similar to the more popular Sharpe Ratio, the Shrop Ratio instead uses the highly accurate Probability of Default Neural Network model to quantify portfolio risk in the denominator rather than the Sharpe Ratio's typical method of using the standard deviation of historical portfolio returns to quantify volatility. This figure is simply used to compare loans side-by-side on a risk-adjusted return basis, under the assumption that my Probability of Default Neural Network is more indicative of risk than historical standard deviation could possibly be. The higher the Shrop Ratio number, the better the investment according to my process and models.  
+
+**Upon Downloading the Recommendation CSV**
+Next Steps:  
+- Use Loan IDs in the downloaded CSV to guide your investments on LendingClub.com!  
+- Click Path: LendingClub.com > Login (or Create Account) > Invest > Manual Investing > More Filters > Filter by Loan ID > Add $ 
+Optimal Diversification:  
+- There are often less than 100 available investments at any given time on LendingClub.com, though an optimized loan portfolio should contain at least 100 different loans to adequately reduce lack of diversification risk 
+- From LendingClub: Accounts with fewer than 100 total Notes have been much more likely to see negative returns
+
+
+
 **Future App Work - User Stories**  
 - As a user, I want to know if the app recommendations will make me more money than the off-the-shelf LendingClub/Prosper recommendations.  
 - As a user, I want all news listings to be featured in the recommendation set so that my investment decision is based on recent updates.  

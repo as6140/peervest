@@ -1,6 +1,6 @@
 html {
     font-family: sans-serif;
-    /* background-image: url("img/wallpaper.jpg");*/
+    background-image: url("img/wallpaper.jpg");
     /* background-attachment: fixed;*/
     text-align: center;
 }
@@ -12,7 +12,7 @@ body {
     margin-left: 50px;
     border: 5px solid black;
     border-radius: 30px;
-    background-color: "#f8f5fb";
+    background-color: #e9eff2;
 }
 
 div.result {

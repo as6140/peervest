@@ -83,7 +83,7 @@ The model has been deployed on the web as a Flask app hosted on an Amazon Web Se
 Next Steps:  
 - Use Loan IDs in the downloaded CSV to guide your investments on LendingClub.com!  
 - Click Path: LendingClub.com > Login (or Create Account) > Invest > Manual Investing > More Filters > Filter by Loan ID > Add $ 
-![lc.com_screenshot_readme](lc.com_screenshot_readme.png)
+![lc.com_screenshot_readme](static/img/lc.com_screenshot_readme.png)
   
 Optimal Diversification:  
 - There are often less than 100 available investments at any given time on LendingClub.com, though an optimized loan portfolio should contain at least 100 different loans to adequately reduce lack of diversification risk 

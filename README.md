@@ -1,6 +1,6 @@
 ![peervest](http://www.peervest.online/img/peervest.png)  
 (http://www.peervest.online)  
-**A P2P Lending Robo-Advisor**  
+**A P2P Lending Robo-Advisor Using a Neural Network (Classification, Probability of Default) and a Random Forest (Regression, Annualized Returns)**  
 *Alex Shropshire*
   
 ### Business Understanding  
@@ -82,8 +82,12 @@ The model has been deployed on the web as a Flask app hosted on an Amazon Web Se
 **Upon Downloading the Recommendation CSV**  
 Next Steps:  
 - Use Loan IDs in the downloaded CSV to guide your investments on LendingClub.com!  
+<<<<<<< HEAD
 - Click Path: LendingClub.com > Login (or Create Account) > Invest > Manual Investing > More Filters > Filter by Loan ID > Add $ 
 ![lc_loan_id_filter](http://www.peervest.online/img/lc.com_screenshot_readme.png)  
+=======
+- Click Path: LendingClub.com > Login (or Create Account) > Invest > Manual Investing > More Filters > Filter by Loan ID > Add $   
+>>>>>>> 06526104df09a7e71e64f7851a0c404b6db933f0
 
 Optimal Diversification:  
 - There are often less than 100 available investments at any given time on LendingClub.com, though an optimized loan portfolio should contain at least 100 different loans to adequately reduce lack of diversification risk 
@@ -93,8 +97,8 @@ Optimal Diversification:
 
 **Future App Work - User Stories**  
 - As a user, I want to know if the app recommendations will make me more money than the off-the-shelf LendingClub/Prosper recommendations.  
-- As a user, I want all news listings to be featured in the recommendation set so that my investment decision is based on recent updates.  
+- As a user, I want all new listings to be featured in the recommendation set so that my investment decision is based on recent updates.  
 - As a user, I want to be able to filter by loan purpose so that I can curate a mission-driven loan set.  
-- As a user, I want to visually see how the each set (1. filtered out set, 2. filtered in set, 3. recommendation set, 4. all listed loans) is diversified across loan purposes, LC/Prosper Risk Grades, Payment Period End Dates, Weighted? Average Time Elapsed/Time Left, Weighted Average Probability of Loan Default, Credit Scores, Occupations, Interest Rates, Weighted Average/Effective Interest Rate.  
-- As a power user/data scientist/developer, I want see a python code output that I can use to execute my own orders based off of the recommendation set.  
+- As a user, I want to visually see how the each set (1. filtered out set, 2. filtered in set, 3. recommendation set, 4. all listed loans) is diversified across loan purposes, LC/Prosper Risk Grades, Payment Period End Dates, Weighted Average Time Elapsed/Time Left, Weighted Average Probability of Loan Default, Credit Scores, Occupations, Interest Rates, Weighted Average/Effective Interest Rate.  
+- As a power user/data scientist/developer, I want see a python code output that I can use to execute my own orders based off of the recommendation set to reduce manual allocation time.  
 - As a user, I want to compare how the LendingClub/Prosper Marketplace quotes interest rates over time vs. the federal funds rates over time to see how they correlate and how P2P lending depends on the central bank/greater economy.  

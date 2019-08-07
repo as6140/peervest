@@ -89,8 +89,8 @@ The model has been deployed on the web as a Flask app hosted on an Amazon Web Se
 - Formula: Shrop Ratio = ( Portfolio Returns - Risk-Free Rate ) / Portfolio Dollar Weighted Average Probability of Default   
 - Similar to the more popular Sharpe Ratio, the Shrop Ratio instead uses the highly accurate Probability of Default Neural Network model to quantify portfolio risk in the denominator rather than the Sharpe Ratio's typical method of using the standard deviation of historical portfolio returns to quantify volatility. This figure is simply used to compare loans side-by-side on a risk-adjusted return basis, under the assumption that my Probability of Default Neural Network is more indicative of risk than historical standard deviation could possibly be. The higher the Shrop Ratio number, the better the investment according to my process and models.  
 
-**Upon Downloading the Recommendation CSV**  
-Next Steps:  
+**Persnal Implementation**  
+Next Steps Upon Downloading the Recommendation CSV:  
 - Use Loan IDs in the downloaded CSV to guide your investments on LendingClub.com!  
 - Click Path: [Click Here](https://www.lendingclub.com/auth/login) > Login (or Create Account) > Invest > Manual Investing > More Filters > Filter by Loan ID > Add $  
 ![lc.com_screenshot_readme](static/img/lc.com_screenshot_readme.png)

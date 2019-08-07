@@ -75,6 +75,16 @@ But, we can become much more confident in our prediction if we know something ab
   
 The model has been deployed on the web as a Flask app hosted on an Amazon Web Services EC2 instance, utilizing HTML, CSS, and Brython. It can collect a user’s maximum risk tolerance and their corresponding minimum desired portfolio return, and output a comprehensive list of loans currently live on LendingClub.com based on my model's recommendation.
 
+**Important Terms & Concepts**:  
+- **Peer-to-Peer Lending (aka P2P, Crowdlending)**: the practice of lending money to individuals or businesses through online services that match lenders with borrowers. Because of their online-only nature and low overhead, generally, lenders can earn higher returns compared to savings and investment products offered by banks, while borrowers can borrow money at lower interest rates.  
+- **Artificial Neural Network**: a computational learning system that uses a network of functions to understand and translate a data input of one form into a desired output, usually in another form. Inspired by the way neurons of the human brain function together to understand inputs from human senses. [Learn More Here](https://www.forbes.com/sites/bernardmarr/2018/09/24/what-are-artificial-neural-networks-a-simple-explanation-for-absolutely-anyone/#7a5465a12457)  
+- **Random Forest Model**: an ensemble learning method for classification, regression and other tasks that operates by constructing a multitude of decision trees at training time and outputting the class that is the mode of the classes or mean prediction of the individual trees. [Learn More Here](https://www.kdnuggets.com/2019/01/random-forests-explained-intuitively.html)  
+- **Probability of Default**: an estimate of the likelihood that a borrower will be unable to meet its debt obligations. [Learn More Here](https://www.investopedia.com/terms/d/defaultprobability.asp)   
+- **Annualized Return**: returns over a period scaled down to a 12-month period. Formula: AR = (xTP / xLA) ^ (365/D) - 1, where xLA is the loan amount, xTP is total payment made by the borrower, and D is the number of days between loan funding and date of last payment. [Learn More Here](https://www.investopedia.com/terms/a/annualized-rate.asp)   
+  
+**Understanding the Data**:  
+- [Download LendingClub's Data Dictionary](https://resources.lendingclub.com/LCDataDictionary.xlsx)  
+  
 **Shrop Ratio**:  
 - Formula: Shrop Ratio = ( Portfolio Returns - Risk-Free Rate ) / Portfolio Dollar Weighted Average Probability of Default   
 - Similar to the more popular Sharpe Ratio, the Shrop Ratio instead uses the highly accurate Probability of Default Neural Network model to quantify portfolio risk in the denominator rather than the Sharpe Ratio's typical method of using the standard deviation of historical portfolio returns to quantify volatility. This figure is simply used to compare loans side-by-side on a risk-adjusted return basis, under the assumption that my Probability of Default Neural Network is more indicative of risk than historical standard deviation could possibly be. The higher the Shrop Ratio number, the better the investment according to my process and models.  
@@ -82,7 +92,7 @@ The model has been deployed on the web as a Flask app hosted on an Amazon Web Se
 **Upon Downloading the Recommendation CSV**  
 Next Steps:  
 - Use Loan IDs in the downloaded CSV to guide your investments on LendingClub.com!  
-- Click Path: LendingClub.com > Login (or Create Account) > Invest > Manual Investing > More Filters > Filter by Loan ID > Add $ 
+- Click Path: [Click Here](https://www.lendingclub.com/auth/login) > Login (or Create Account) > Invest > Manual Investing > More Filters > Filter by Loan ID > Add $  
 ![lc.com_screenshot_readme](static/img/lc.com_screenshot_readme.png)
   
 Optimal Diversification:  

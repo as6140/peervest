@@ -8,7 +8,7 @@ import uuid
 import matplotlib.pyplot as plt
 
 app = Flask(__name__, static_url_path="")
-table_all_current = pd.read_pickle('table_all_current_7.29.19.pkl')
+table_all_current = pd.read_pickle('table_all_current_8.29.19.pkl')
 
 
 @app.route("/")
@@ -50,7 +50,7 @@ def output():
     html += f'<div>Portfolio Expected Return: {round(port_exp_return,2)*100}%</div>'
     html += f'<div>Portfolio Weighted Average Probability of Default: {round(port_prob_def,2)*100}%</div>'
     html += f'<div>Portfolio Weighted Average Shrop Ratio: {round(port_shrop_ratio,2)}</div>'
-    html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div>'
+    html += f'<div>Maximum Investable in Recommended Loans: ${max_investable}</div></div>'
     html += tabl.to_html(index=False)
     filename = f'portfolio_{uuid.uuid4()}.csv'
     full_table.to_csv(f'static/port_downloads/{filename}')
